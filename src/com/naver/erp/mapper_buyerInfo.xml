@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->
+<!-- mapper 태그 선언 -->
+<!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->
+	<!-- namespace 속성값으로 [DAO 인터페이스명]이 오며 -->
+	<!-- [DAO 인터페이스] 메소드명과 동일한 id 값을 소유한 태그를 내포하고 있다. -->
+<!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->
+<mapper namespace="com.naver.erp.BuyerDAO">   <!--  LoginDAOImple 클래스와 연동 -->
+	<!-- parameterType : input type, resultType : return type 
+		 id : SQL구문의 고유 아이디값 설정, DAO클래스의 메소드 이름과 동일	-->
+	<select id='getBuyerDTO' parameterType="int" resultType="com.naver.erp.BuyerDTO"> 
+		
+		select
+				*
+			from BUYER_REG	
+			where b_no = #{b_no}
+	</select>		
+</mapper>
+
+	
