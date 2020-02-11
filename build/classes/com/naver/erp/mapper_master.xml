@@ -1,0 +1,1479 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.naver.erp.MasterDAO">
+
+<select id="getHomeData" resultType="com.naver.erp.MasterHomeDTO">
+			
+      		  
+      		         select
+				        (select count(sr.sr_no) from sell_room sr) as roomCount
+				        ,(select count(al.CNT) from (select s_no as CNT from seller_reg         
+					      union all
+					      select b_no as CNT from buyer_reg
+					      union all
+					      select r_no from realtor_reg
+	                      union all
+	                      select rt_no from rental_reg)  al ) as clientCount 
+	                      ,(select count(rp.rp_no) from rental_product_info rp ) as rentCount
+	                      ,(select count(*) from visit) as "visitCount"
+	                      ,(select count(*) from visit where  to_char(v_date,'yyyymmdd') = to_char(sysdate,'yyyymmdd')) as "visitToday"
+	                      ,(select count(*) from visit where  to_char(v_date,'yyyymmdd') = to_char(sysdate -1,'yyyymmdd')) as "visitYesterday"
+      				from dual 
+
+	</select>		
+	
+	<!-- home 총 고객 그래프에 필요한 데이터 com.naver.erp.MasterHomeGraphDTO -->
+	<select id="getHomeGraphData"  parameterType="int" resultType="java.util.HashMap">
+	
+	 (select
+		        nvl(SUM("01"),0) as "Jan", nvl(SUM("02"),0) "Feb" , nvl(SUM("03"),0) "Mar" , nvl(SUM("04"),0) AS "Apr", nvl(SUM("05"),0) AS "May", nvl(SUM("06"),0) AS "Jun",
+   				 nvl(SUM("07"),0) AS "Jul", nvl(SUM("08"),0) AS "Aug", nvl(SUM("09"),0) AS "Sep", nvl(SUM("10"),0) AS "Oct", nvl(SUM("11"),0) AS "Nov", nvl(SUM("12"),0) AS "Dec" 
+     from client_date_view where YEARDATE = #{yearVal})
+	 union all
+	  (select
+	        nvl(SUM("01"),0) as "Jan", nvl(SUM("02"),0) "Feb" , nvl(SUM("03"),0) "Mar" , nvl(SUM("04"),0) AS "Apr", nvl(SUM("05"),0) AS "May", nvl(SUM("06"),0) AS "Jun",
+	   		 nvl(SUM("07"),0) AS "Jul", nvl(SUM("08"),0) AS "Aug", nvl(SUM("09"),0) AS "Sep", nvl(SUM("10"),0) AS "Oct", nvl(SUM("11"),0) AS "Nov", nvl(SUM("12"),0) AS "Dec"
+        from sell_room_date_view where  SR_DATE = #{yearVal})
+      union all
+      (select
+	        nvl(SUM("01"),0) as "Jan", nvl(SUM("02"),0) "Feb" , nvl(SUM("03"),0) "Mar" , nvl(SUM("04"),0) AS "Apr", nvl(SUM("05"),0) AS "May", nvl(SUM("06"),0) AS "Jun",
+	   		 nvl(SUM("07"),0) AS "Jul", nvl(SUM("08"),0) AS "Aug", nvl(SUM("09"),0) AS "Sep", nvl(SUM("10"),0) AS "Oct", nvl(SUM("11"),0) AS "Nov", nvl(SUM("12"),0) AS "Dec"
+        from rental_product_date_view where  rp_date = #{yearVal})
+       union all
+      (select
+	        nvl(SUM("01"),0) as "Jan", nvl(SUM("02"),0) "Feb" , nvl(SUM("03"),0) "Mar" , nvl(SUM("04"),0) AS "Apr", nvl(SUM("05"),0) AS "May", nvl(SUM("06"),0) AS "Jun",
+	   		 nvl(SUM("07"),0) AS "Jul", nvl(SUM("08"),0) AS "Aug", nvl(SUM("09"),0) AS "Sep", nvl(SUM("10"),0) AS "Oct", nvl(SUM("11"),0) AS "Nov", nvl(SUM("12"),0) AS "Dec"
+        from v_visit_view where  V_YEAR = #{yearVal})
+        
+	
+			 <!--  	(select  *  from client_date_view  where YEARDATE = #{yearVal})   총 고객 개수
+                 union all
+                (select * from sell_room_date_view  where  SR_DATE = #{yearVal})  총 매물 개수
+				union all
+				(select * from rental_product_date_view where rp_date = #{yearVal}) 총 렌탈 매물 개수 -->
+
+	</select>		
+	
+	
+	
+	
+	<select id="getBuyerListAllCnt"  resultType="int">
+		select count(*) from buyer_reg
+	</select>
+	
+	<select id="getSellerListAllCnt"  resultType="int">
+		select count(*) from seller_reg
+	</select>
+	
+	<select id="getRentalListAllCnt"  resultType="int">
+		select count(*) from rental_reg
+	</select>
+	
+	<select id="getBoardListBuyer" resultType="java.util.HashMap">
+	
+	
+		
+			select
+				b_no||'' as "b_no"
+				,b_id as "b_id"
+				, b_name as "b_name"
+				,b_jumin as "b_jumin"
+				,b_date||''  as "b_date"
+			from buyer_reg  
+						 		  
+
+	</select>
+	
+	<select id="getBoardListSeller"  resultType="java.util.HashMap">
+	
+
+			select
+				s_no||'' as "s_no"
+				,s_id as "s_id"
+				, s_name as "s_name"
+				,s_jumin as "s_jumin"
+				,s_date||''  as "s_date"
+			from seller_reg  
+							 		  
+
+	</select>
+	
+	<select id="getBoardListRealtor"  resultType="java.util.HashMap">
+	
+	
+			select
+				r_no||'' as "r_no"
+				,r_id as "r_id"
+				, r_name as "r_name"
+				,r_phone as "r_phone"
+				,r_date||''  as "r_date"
+			from realtor_reg  		 		  
+
+	</select>
+	
+	<select id="getBoardListRental"   resultType="java.util.HashMap">
+	
+	
+			select
+				rt_no||'' as "rt_no"
+				,rt_id as "rt_id"
+				, rt_comname as "rt_comname"
+				,rt_phone as "rt_phone"
+				,rt_date||''  as "rt_date"
+			from rental_reg   
+
+	</select>
+	
+	
+	<select id="getGender"   resultType="java.util.HashMap">
+	select
+	   decode(substr(gender,7,1),1,'m',3,'m','w')  "gender"
+	   ,count(*) as "count"  
+	from (
+	(select 
+	    b_jumin as "GENDER" 	    
+		 from buyer_reg	 
+	 )
+	<!--  union all
+	 (select 
+	    s_jumin as "gender" 	   
+		 from seller_reg
+	)   -->
+	) group by decode(substr(gender,7,1),1,'m',3,'m','w')  
+
+	</select>
+	
+	<select id="getAge"   resultType="java.util.HashMap">
+	select decode(substr(age,1,1),1,10,2,20,3,30,40) "age"
+       , count(*) as "count"
+from(
+
+    select
+       to_number(to_char(sysdate,'YYYY')) - to_number(decode(substr(age,7,1),1,19,2,19,20)||substr(age,1,2))  "AGE"
+       ,count(*) as "COUNT"  
+    from (
+    (select 
+        b_jumin as "AGE" 
+        
+     from buyer_reg
+     
+     )
+	
+	) group by age  
+    
+    )
+    group by age
+
+
+	</select>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<insert id="insertStopCustomer" parameterType="com.naver.erp.MasterStopCustomerDTO">
+		insert into stopCustomer values( (select nvl(max(sc_no),0) + 1 from stopCustomer), #{tableName},${stopNo} , #{stopId}, to_date(#{startDate},'YYYY-MM-DD'),   to_date(#{endDate},'YYYY-MM-DD'), #{stop_comment} ) 
+	</insert>
+	
+	<update id="updateStopCustomer" parameterType="com.naver.erp.MasterStopCustomerDTO">
+		update stopCustomer set start_date =  to_date(#{startDate},'YYYY-MM-DD'), end_date =  to_date(#{endDate},'YYYY-MM-DD') , stop_comment =  #{stop_comment} where reg_table = #{tableName} and reg_no = ${stopNo}
+	</update>
+	
+	<delete id="deleteStopCustomer">
+		delete stopCustomer where reg_table = #{tableName} and reg_no = ${stopNo}
+	</delete>
+	
+	
+	<select id="getStopCustomer" parameterType="String" resultType="java.util.HashMap">
+		select 
+			sc_no as "sc_no"
+			,reg_table as "reg_table"
+			,stop_comment as "stop_comment"
+			,reg_no as "reg_no"
+			,reg_id as "reg_id"
+			,to_char(start_date,'YYYY-MM-DD')||'' as "start_date"
+			,to_char(end_date,'YYYY-MM-DD')||'' as "end_date"
+			,to_char(sysdate,'YYYY-MM-DD')||'' as "today"
+			,to_char(end_date+1,'YYYY-MM-DD')||'' as "real_end_date"			
+		 from stopCustomer where reg_table = #{tableName}
+	</select>
+	
+	
+	<!-- ##############################################3 -->
+	<!-- ##############################################3 -->
+	<!-- ##############################################3 -->
+	
+	<!-- 판매자 code부분 -->
+	<!--  ************ code_sell_room_type테이블 데이터 가져오기 ************-->	
+	<select id="getRoomTypeCode"  resultType="java.util.HashMap">
+			select
+				roomtype_code||'' as "roomtype_code",
+				roomtype as "roomtype"
+			from code_sell_room_type   
+			order by roomtype_code	  
+
+	</select>
+	
+	<!--  ************ CODE_ELV테이블 데이터 가져오기 ************-->		
+	<select id="getELVCode"  resultType="java.util.HashMap">
+		select
+			ELV_AVAILABLE_CODE||'' as "ELV_AVAILABLE_CODE",
+			ELV_AVAILABLE as "ELV_AVAILABLE"
+		from CODE_ELV    		  
+		order by  ELV_AVAILABLE_CODE
+	</select>
+	
+	<!--  ************ CODE_HC_TYPE테이블 데이터 가져오기 ************-->			
+	<select id="getHcTypeCode"  resultType="java.util.HashMap">
+		select
+			HC_TYPE_CODE||'' as "HC_TYPE_CODE",
+			HC_TYPE as "HC_TYPE"
+		from CODE_HC_TYPE    		  
+		order by HC_TYPE_CODE
+	</select>
+	
+	<!--  ************ CODE_OPTION_SELECT테이블 데이터 가져오기 ************-->			
+	<select id="getOptionSelectCode"  resultType="java.util.HashMap">
+		select
+			OPTION_SELECT_CODE||'' as "OPTION_SELECT_CODE",
+			OPTION_SELECT_TYPE as "OPTION_SELECT_TYPE"
+		from CODE_OPTION_SELECT    		  
+		order by OPTION_SELECT_CODE
+	</select>
+	
+	<!--  ************ CODE_PET테이블 데이터 가져오기 ************-->			
+	<select id="getPetCode"  resultType="java.util.HashMap">
+		select
+			PET_AVAILABLE_CODE||'' as "PET_AVAILABLE_CODE",
+			PET_AVAILABLE as "PET_AVAILABLE"
+		from CODE_PET_AVAILABILITY    		  
+		order by PET_AVAILABLE_CODE
+	</select>
+	
+	<!--  ************ CODE_PARKING테이블 데이터 가져오기 ************-->			
+	<select id="getParkingCode"  resultType="java.util.HashMap">
+		select
+			PARKING_AVAILABLE_CODE||'' as "PARKING_AVAILABLE_CODE",
+			PARKING_AVAILABLE as "PARKING_AVAILABLE"
+		from CODE_PARKING_AVAILABILITY    		  
+		order by PARKING_AVAILABLE_CODE
+	</select>
+	
+	<!--  ************ CODE_OPTION_TYPE 테이블 데이터 가져오기 ************-->			
+	<select id="getOptionTypeCode"  resultType="java.util.HashMap">
+		select
+			OPTION_TYPE_CODE||'' as "OPTION_TYPE_CODE",
+			OPTION_TYPE as "OPTION_TYPE"
+		from CODE_OPTION_TYPE     		  
+		order by OPTION_TYPE_CODE
+	</select>
+	
+	<!--  ************ CODE_FEE 테이블 데이터 가져오기 ************-->			
+	<select id="getFeeCode"  resultType="java.util.HashMap">
+		select
+			MANAGE_FEE_AVAILABLE_CODE||'' as "MANAGE_FEE_AVAILABLE_CODE",
+			MANAGE_FEE_AVAILABLE as "MANAGE_FEE_AVAILABLE"
+		from CODE_MANAGE_FEE     		  
+		order by MANAGE_FEE_AVAILABLE_CODE
+	</select>
+	
+	<!--  ************ CODE_LIVE_IN_TYPE테이블 데이터 가져오기 ************-->			
+	<select id="getLiveInCode"  resultType="java.util.HashMap">
+		select
+			LIVE_IN_TYPE_CODE||'' as "LIVE_IN_TYPE_CODE",
+			LIVE_IN_TYPE as "LIVE_IN_TYPE"
+		from CODE_LIVE_IN_TYPE    		  
+		order by LIVE_IN_TYPE_CODE
+	</select>
+	
+	<!--  ************ CODE_SELL_TYPE 테이블 데이터 가져오기 ************-->			
+	<select id="getSellCode"  resultType="java.util.HashMap">
+		select
+			SELL_TYPE_CODE||'' as "SELL_TYPE_CODE",
+			SELL_TYPE as "SELL_TYPE"
+		from CODE_SELL_TYPE     		  
+		order by SELL_TYPE_CODE
+	</select>
+		
+	
+	
+	<!-- ##############################################3 -->
+	<!-- ##############################################3 -->
+	<!-- ##############################################3 -->
+	
+	
+	
+	<!-- 공인중개사 code부분 -->
+	<!--  ************ CODE_REALTOR_AUTHORITY테이블 데이터 가져오기 ************-->	
+	<select id="getAuthCode"  resultType="java.util.HashMap">
+			select
+				authority_code||'' as "authority_code",
+				authority as "authority"
+			from CODE_REALTOR_AUTHORITY   
+			order by authority_code	  
+
+	</select>
+	
+	<!--  ************ CODE_SIGNUP_ROUTE테이블 데이터 가져오기 ************-->		
+	<select id="getSignupRouteCode"  resultType="java.util.HashMap">
+		select
+			route_code||'' as "route_code",
+			route as "route"
+		from CODE_SIGNUP_ROUTE    		  
+		order by  route_code
+	</select>
+	
+	<!--  ************ CODE_REALTOR_DATA_CHECK테이블 데이터 가져오기 ************-->			
+	<select id="getDataCheckCode"  resultType="java.util.HashMap">
+		select
+			check_code||'' as "check_code",
+			check_type as "check_type"
+		from CODE_REALTOR_DATA_CHECK    		  
+		order by check_code
+	</select>
+	  
+	<!-- ##############################################3 -->
+	<!-- ##############################################3 -->
+	<!-- ##############################################3 -->
+	
+	
+	
+	<!-- 렌탈 code부분 -->
+	
+	<!--  ************ CODE_RENTAL_TERM테이블 데이터 가져오기 ************-->		
+	<select id="getRentalCode"  resultType="java.util.HashMap">
+		select
+			RENTAL_TERM_CODE||'' as "rental_term_code",
+			RENTAL_TERM as "rental_term"
+		from CODE_RENTAL_TERM    		  
+		order by  rental_term_code
+	</select>
+	
+	<!--  ************ CODE_RENTAL_PRODUCT테이블 데이터 가져오기 ************-->			
+	<select id="getRentalProductCode"  resultType="java.util.HashMap">
+		select
+			RENTAL_PRODUCT_CODE||'' as "rental_product_code",
+			RENTAL_PRODUCT as "rental_product"
+		from CODE_RENTAL_PRODUCT    		  
+		order by rental_product_code
+	</select>
+	
+	<!-- ##############################################3 -->
+	<!-- ##############################################3 -->
+	<!-- ##############################################3 -->		
+		
+	
+<!--  ************메뉴목록 삭제 ************-->	
+<!--  삭제할 목록의 code값 가져오기 -->	
+	<select id="getDeleteNum"  parameterType="map" resultType="int">
+			select
+				${columnCodeName}||''
+			from ${tableName}   where ${columnName} = #{selectColumn}
+	</select>
+<!--  목록 삭제 -->		
+	<delete id="delAllCode" parameterType="map">
+		delete ${tableName}  where ${columnName} = #{selectColumn} 
+	</delete>
+<!--  삭제된 목록의 번호보다 큰 번호가 있을 경우 -1 해주는 작업 -->		
+	<update id="updateRoomTypeCode" parameterType="map">
+      	update ${tableName} set ${columnCodeName} = ${columnCodeName}-1 where ${columnCodeName} &gt; to_number(${deleteNum})		
+	</update>
+	
+	
+	
+<!--  ************메뉴목록 수정************ -->		
+	<update id="upAllCode" parameterType="hashmap">
+      update ${tableName} set ${tableColumn} = #{changeValue} where ${tableColumn} = #{gizonValue}		
+	</update>
+	
+	
+	
+<!--  ************새목록 추가************ -->
+<!--  목록 추가전 중복된 목록이름이 있는지 체크 -->		
+	<select id="getCheckNum"  parameterType="map" resultType="int">
+			select
+				count(*)
+			from ${tableName}  where ${columnName} = #{insertValue}
+	</select>
+<!--  목록 추가 -->		
+	<insert id="inAllCode" parameterType="map">		
+		insert into ${tableName} values( (select nvl(max(${columnCodeName}),0) + 1 from ${tableName}) , #{insertValue}  )
+	</insert>
+	
+	
+	<!-- ##############################################3 -->
+	<!-- ##############################################3 -->
+	<!-- ##############################################3 -->	
+	
+	
+	<select id="getCheckCode" resultType="String">
+			select state_flag from checkCode	
+	</select>
+	
+	<select id="getCheckInfo" resultType="java.util.HashMap">
+		select inputmsg as "inputmsg"
+				  ,to_char(startdate,'YYYY-MM-DD') as "startdate"
+				,to_char(enddate,'yyyy-mm-dd')||'' as "enddate"  
+		from checkcode
+	</select>
+	
+	
+	
+	<update id="updateCheckCode" parameterType="com.naver.erp.MasterCheckcodeDTO">
+     		 update checkCode set state_flag = #{checkCode} ,  startdate = to_date(#{startDate},'yyyy-mm-dd'), enddate = to_date(#{endDate},'yyyy-mm-dd') , inputmsg = #{inputMsg}
+	</update>
+
+	
+
+
+	<!-- ##############################################3 -->
+	<!-- ##############################################3 -->
+	<!-- ##############################################3 -->	
+	
+	<!--  차트 관련 쿼리 -->
+
+
+
+	
+	<!-- <select id="getBuyerChartData" resultType="com.naver.erp.MasterBuyerListDTO">
+			select 
+				(select count(b_no) from buyer_reg where b_ad = 'Y') as "adTrueCnt"
+				,(select count(b_no) from buyer_reg where b_ad = 'N')	 as "adFalseCnt"
+			from dual
+	</select> -->
+	
+	
+	<select id="getRoomGraphData" resultType="java.util.HashMap">
+			select 
+				(select count(sr_no) from sell_room)||'' as "all_roomCnt"
+				,(select count(*) from TYPE_SELL_ROOM where roomtype_code=1)||'' as "oneRoomCnt"
+				,(select count(*) from TYPE_SELL_ROOM where roomtype_code=2)||'' as "twoRoomCnt"
+				,(select count(*) from TYPE_SELL_ROOM where roomtype_code=3)||'' as "officeRoomCnt"
+				,(select count(*) from SELL_ROOM_SELL_TYPE  where sr_no in (select sr_no from TYPE_SELL_ROOM where roomtype_code=1)  and  sell_type_code = 1)||'' as "oneSale"   <!-- 원룸-매매 -->
+				,(select count(*) from SELL_ROOM_SELL_TYPE  where sr_no in (select sr_no from TYPE_SELL_ROOM where roomtype_code=1)  and  sell_type_code = 2)||'' as "oneJeonse" <!-- 원룸-전세 -->
+				,(select count(*) from SELL_ROOM_SELL_TYPE  where sr_no in (select sr_no from TYPE_SELL_ROOM where roomtype_code=1)  and  sell_type_code = 3)||'' as "oneOneRoom" <!-- 원룸-월세 -->   
+				,(select count(*) from SELL_ROOM_SELL_TYPE  where sr_no in (select sr_no from TYPE_SELL_ROOM where roomtype_code=2)  and  sell_type_code = 1)||'' as "twoSale" <!-- 투룸-월세 -->   
+				,(select count(*) from SELL_ROOM_SELL_TYPE  where sr_no in (select sr_no from TYPE_SELL_ROOM where roomtype_code=2)  and  sell_type_code = 2)||'' as "twoJeonse" <!-- 투룸-월세 -->   
+				,(select count(*) from SELL_ROOM_SELL_TYPE  where sr_no in (select sr_no from TYPE_SELL_ROOM where roomtype_code=2)  and  sell_type_code = 3)||'' as "twoOneRoom" <!-- 투룸-월세 -->   
+				,(select count(*) from SELL_ROOM_SELL_TYPE  where sr_no in (select sr_no from TYPE_SELL_ROOM where roomtype_code=3)  and  sell_type_code = 1)||'' as "officeSale" <!-- 오피스텔-월세 -->   
+				,(select count(*) from SELL_ROOM_SELL_TYPE  where sr_no in (select sr_no from TYPE_SELL_ROOM where roomtype_code=3)  and  sell_type_code = 2)||'' as "officeJeonse" <!-- 오피스텔-월세 -->   
+				,(select count(*) from SELL_ROOM_SELL_TYPE  where sr_no in (select sr_no from TYPE_SELL_ROOM where roomtype_code=3)  and  sell_type_code = 3)||'' as "officeOneRoom" <!-- 오피스텔-월세 --> 
+				,(select count(*) from sell_room where sr_no in (select sr_no from SELL_ROOM_OWNER_CHECK where check_code = 1))||'' as "standby"
+				,(select count(*) from sell_room where sr_no in (select sr_no from SELL_ROOM_OWNER_CHECK where check_code = 2))||'' as "checkOwner"
+				,(select count(*) from sell_room where sr_no in (select sr_no from SELL_ROOM_OWNER_CHECK where check_code = 3))||'' as "adRoom"
+				,(select count(*) from sell_room where sr_no in (select sr_no from SELL_ROOM_OWNER_CHECK where check_code = 4 or check_code = 5))||'' as "sellFinish"
+				
+			from dual
+	</select>
+	
+	<select id="getYearRoomType"  parameterType="com.naver.erp.MasterChartsDTO" resultType="java.util.HashMap">
+			
+
+    (select (
+
+    select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=1
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-01')||'' as "jan"
+
+
+       ,( select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=1
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-02')||'' as "feb" 
+        
+
+       ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=1
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-03')||'' as "mar"          
+         
+         
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=1
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-04')||'' as "apr"
+                                                                         
+        
+         ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=1
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-05')||'' as "may"   
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=1
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-06')||'' as "jun"      
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=1
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-07')||'' as "jul"
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=1
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-08')||'' as "aug"
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=1
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-09')||'' as "sep"
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=1
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-10')||'' as "oct" 
+        
+        
+       ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=1
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-11')||'' as "nov"
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=1
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-12')||'' as "dec" from dual)
+
+
+        union all
+
+
+        (select(
+        select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=2
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-01')||'' as "jan"
+        
+        
+       ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=2
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-02')||'' as "feb" 
+        
+        
+       ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=2
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-03')||'' as "mar"
+         
+         
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=2
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-04')||'' as "apr" 
+        
+        
+         ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=2
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-05')||'' as "may" 
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=2
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-06')||'' as "jun" 
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=2
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-07')||'' as "jul" 
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=2
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-08')||'' as "aug"  
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=2
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-09')||'' as "sep"
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=2
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-10')||'' as "oct"  
+        
+        
+       ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=2
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-11')||'' as "nov" 
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=2
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-12')||'' as "dec" from dual)
+
+
+        union all
+
+
+        (select (
+        select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=3
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-01')||'' as "jan"     
+        
+        
+       ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=3
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-02')||'' as "feb"
+        
+        
+       ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=3
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-03')||'' as "mar" 
+         
+         
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=3
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-04')||'' as "apr"
+        
+        
+         ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=3
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-05')||'' as "may"
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=3
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-06')||'' as "jun"  
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=3
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-07')||'' as "jul"  
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=3
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-08')||'' as "aug"
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=3
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-09')||'' as "sep"
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=3
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-10')||'' as "oct" 
+        
+        
+       ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=3
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-11')||'' as "nov"  
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=3
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-12')||'' as "dec" from dual)
+
+
+
+	</select>
+	
+	<select id="roomtypeGraph"  parameterType="com.naver.erp.MasterChartsDTO" resultType="java.util.HashMap">
+			
+
+    (select (
+
+    select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=1
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-01')||'' as "jan"
+
+
+       ,( select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=1
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-02')||'' as "feb" 
+        
+
+       ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=1
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-03')||'' as "mar"          
+         
+         
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=1
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-04')||'' as "apr"
+                                                                         
+        
+         ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=1
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-05')||'' as "may"   
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=1
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-06')||'' as "jun"      
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=1
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-07')||'' as "jul"
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=1
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-08')||'' as "aug"
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=1
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-09')||'' as "sep"
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=1
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-10')||'' as "oct" 
+        
+        
+       ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=1
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-11')||'' as "nov"
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=1
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-12')||'' as "dec" from dual)
+
+
+        union all
+
+
+        (select(
+        select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=2
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-01')||'' as "jan"
+        
+        
+       ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=2
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-02')||'' as "feb" 
+        
+        
+       ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=2
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-03')||'' as "mar"
+         
+         
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=2
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-04')||'' as "apr" 
+        
+        
+         ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=2
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-05')||'' as "may" 
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=2
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-06')||'' as "jun" 
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=2
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-07')||'' as "jul" 
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=2
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-08')||'' as "aug"  
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=2
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-09')||'' as "sep"
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=2
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-10')||'' as "oct"  
+        
+        
+       ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=2
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-11')||'' as "nov" 
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=2
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-12')||'' as "dec" from dual)
+
+
+        union all
+
+
+        (select (
+        select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=3
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-01')||'' as "jan"     
+        
+        
+       ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=3
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-02')||'' as "feb"
+        
+        
+       ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=3
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-03')||'' as "mar" 
+         
+         
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=3
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-04')||'' as "apr"
+        
+        
+         ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=3
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-05')||'' as "may"
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=3
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-06')||'' as "jun"  
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=3
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-07')||'' as "jul"  
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=3
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-08')||'' as "aug"
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=3
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-09')||'' as "sep"
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=3
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-10')||'' as "oct" 
+        
+        
+       ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=3
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-11')||'' as "nov"  
+        
+        
+        ,(select count(*)
+
+        from type_sell_room tsr,sell_room_owner_check oc,realtor_seller_data_assign rd
+        where tsr.sr_no=oc.sr_no and oc.sr_no=rd.sr_no
+            and tsr.roomtype_code=3
+            and oc.check_code=5
+            and
+        to_char(rd.end_date,'yyyy-mm')='${yearVal}-12')||'' as "dec" from dual)
+
+
+
+	</select>
+	
+	<select id="getCustoemrGraphData" resultType="java.util.HashMap">
+			select 
+				(select count(al.CNT) from (select s_no as CNT from seller_reg         
+					      union all
+					      select b_no as CNT from buyer_reg
+					      union all
+					      select r_no from realtor_reg
+	                      union all
+	                      select rt_no from rental_reg)  al ) as "clientCount" 
+	          ,(select count(*) from seller_reg) as "sellerCnt"
+           	  ,(select count(*) from buyer_reg) as "buyerCnt"
+          	  ,(select count(*) from realtor_reg) as "realtorCnt"
+              ,(select count(*) from rental_reg) as "rentalCnt"
+<!--               ,(select count(*) from seller_reg where s_ad = 'Y') as "sellerAdY"
+              ,(select count(*) from seller_reg where s_ad = 'N') as "sellerAdN"
+              ,(select count(*) from buyer_reg where b_ad = 'Y') as "buyerAdY"
+              ,(select count(*) from buyer_reg where b_ad = 'N') as "buyerAdN" -->
+							
+			from dual
+	</select>
+	
+	
+	
+	<select id="getProductLabels" resultType="java.util.HashMap">
+			<!-- select rental_product as "rental_product" from code_rental_product -->
+			select
+			    crp.rental_product as "rental_product"
+			    ,count(rp.rental_product_code)  as "product_count"
+                ,(select rcode.rental_product_code from code_RENTAL_PRODUCT rcode where rcode.rental_product = crp.rental_product  )   as "code_num"
+			from  code_rental_product crp  , rental_product rp
+			where crp.rental_product_code = rp.rental_product_code(+)
+			group by crp.rental_product
+			order by 3
+	</select>
+	
+	
+	
+	<!-- ##############################################3 -->
+	<!-- ##############################################3 -->
+	<!-- ##############################################3 -->	
+	<!-- 방문자 카운트 및 정보 가져오는 쿼리 -->
+	
+	
+	<insert id="setVisitTotalCount">		
+		insert into visit values( sysdate )
+	</insert>
+	
+	<select id="getVisitTodayCount" resultType="int">
+		 select count(*) from visit where  substr(to_char(v_date), 1, 9) = to_date(sysdate, 'yy/MM/dd')
+	</select>
+	
+	<select id="getVisitTotalCount" resultType="int">
+		select count(*) from visit
+	</select> 
+	
+	
+	<!-- ##############################################3 -->
+	<!-- ##############################################3 -->
+	<!-- ##############################################3 -->	
+	
+	<select id="getProductMonthCnt"  parameterType="com.naver.erp.MasterRentCntDTO" resultType="java.util.HashMap">
+	
+			<foreach collection="productCnt" item="item" index="index">
+			(select
+		         nvl(SUM("01"),0) as "Jan", nvl(SUM("02"),0) "Feb" , nvl(SUM("03"),0) "Mar" , nvl(SUM("04"),0) AS "Apr", nvl(SUM("05"),0) AS "May", nvl(SUM("06"),0) AS "Jun",
+            nvl(SUM("07"),0) AS "Jul", nvl(SUM("08"),0) AS "Aug", nvl(SUM("09"),0) AS "Sep", nvl(SUM("10"),0) AS "Oct", nvl(SUM("11"),0) AS "Nov", nvl(SUM("12"),0) AS "Dec"
+		        from 
+					(select
+				        DECODE(extract(month from RENTAL_DATE), '1', 1, 0) AS "01"
+				        , DECODE(extract(month from RENTAL_DATE), '2', 1, 0) AS "02"
+				        , DECODE(extract(month from RENTAL_DATE), '3', 1, 0) AS "03"
+				        , DECODE(extract(month from RENTAL_DATE), '4', 1, 0) AS "04"
+				        , DECODE(extract(month from RENTAL_DATE), '5', 1, 0) AS "05"
+				        , DECODE(extract(month from RENTAL_DATE), '6', 1, 0) AS "06"
+				        , DECODE(extract(month from RENTAL_DATE), '7', 1, 0) AS "07"
+				        , DECODE(extract(month from RENTAL_DATE), '8', 1, 0) AS "08"
+				        , DECODE(extract(month from RENTAL_DATE), '9', 1, 0) AS "09"
+				        , DECODE(extract(month from RENTAL_DATE), '10', 1, 0) AS "10"
+				        , DECODE(extract(month from RENTAL_DATE), '11', 1, 0) AS "11"
+				        , DECODE(extract(month from RENTAL_DATE), '12', 1, 0) AS "12"   
+				        , extract(year from RENTAL_DATE)   as "YEARDATE"
+				        , rp_no 
+			        FROM RENTAL_USER_INFO)
+			         where rp_no in (select rp_no from RENTAL_PRODUCT where RENTAL_PRODUCT_CODE  = ${index}+1 ) and yeardate = 2019) 
+			         <if test= "index != arrayCnt -1">
+			             union all
+			         </if>
+			    </foreach>
+	
+	</select>	
+	
+	
+	
+	
+	<select id="getProductRankingCnt"   resultType="java.util.HashMap">
+			
+			
+					SELECT
+					    p_rank.product   "product_name"
+					    ,p_rank.count   "result"   
+					    ,(
+					        select count(*)+1 from (select (select crentp.rental_product from CODE_RENTAL_PRODUCT crentp where crentp.rental_product_code = rentp.RENTAL_PRODUCT_CODE ) as "PRODUCT"
+					          , count(*) as "COUNT" from RENTAL_PRODUCT rentp where rentp.rp_no in ( SELECT rp_no FROM RENTAL_USER_INFO  
+					                                              WHERE RENTAL_DATE BETWEEN TRUNC(ADD_MONTHS(sysdate,-2)+1) - TO_CHAR(sysdate,'DD')  AND TRUNC(LAST_DAY(sysdate)) +0.99999421 )
+					            group by RENTAL_PRODUCT_CODE
+					            order by count(*)  desc ) p_rank2 where
+					                   p_rank2.count
+					               >
+					                 p_rank.count
+					    )        "ranking"
+					FROM 
+					  (select (select crentp.rental_product from CODE_RENTAL_PRODUCT crentp where crentp.rental_product_code = rentp.RENTAL_PRODUCT_CODE ) as "PRODUCT"
+					          , count(*) as "COUNT" from RENTAL_PRODUCT rentp where rentp.rp_no in ( SELECT rp_no FROM RENTAL_USER_INFO  
+					                                        WHERE RENTAL_DATE BETWEEN TRUNC(ADD_MONTHS(sysdate,-2)+1) - TO_CHAR(sysdate,'DD')  AND TRUNC(LAST_DAY(sysdate)) +0.99999421 )
+					  group by RENTAL_PRODUCT_CODE
+					  order by count(*)  desc ) p_rank   order by 3 desc 
+		</select>		
+			
+		
+		
+		
+		
+		
+		
+		<select id="getCompanyRankingCnt"   resultType="java.util.HashMap">
+	
+						 select 
+                            c_rank.COMNAME "COMNAME"
+                            ,c_rank.count "result"
+                            ,(
+                                select count(*)+1 
+                                from ( (select (select rent_reg.rt_comname from rental_reg rent_reg where rent_reg.rt_no = rent_info.rt_no ) as "COMNAME"
+                                  , count(*) as "COUNT" 
+						          from RENTAL_PRODUCT_info rent_info where rent_info.rp_no in ( SELECT rp_no FROM RENTAL_USER_INFO WHERE RENTAL_DATE BETWEEN TRUNC(ADD_MONTHS(sysdate,-2)+1) - TO_CHAR(sysdate,'DD')  AND TRUNC(LAST_DAY(sysdate)) +0.99999421 )
+                                    group by rt_no)
+                                    union all
+                                    ( select rt_comname , 0 as "COUNT" from rental_reg  where   rt_comname not in ( select rent_reg.rt_comname as "COMNAME"
+                                  from RENTAL_PRODUCT_info rent_info  , rental_reg rent_reg
+                                  where rent_reg.rt_no = rent_info.rt_no and rent_info.rp_no in ( SELECT rp_no FROM RENTAL_USER_INFO WHERE RENTAL_DATE BETWEEN TRUNC(ADD_MONTHS(sysdate,-2)+1) - TO_CHAR(sysdate,'DD')  AND TRUNC(LAST_DAY(sysdate)) +0.99999421 )
+                                    group by rent_reg.rt_comname))
+                                    ) c_rank2 where
+                                           c_rank2.count
+                                       >
+                                         c_rank.count
+                            )        "ranking" 
+                             
+                          from
+                           ( (select (select rent_reg.rt_comname from rental_reg rent_reg where rent_reg.rt_no = rent_info.rt_no ) as "COMNAME"
+                                  , count(*) as "COUNT" 
+						          from RENTAL_PRODUCT_info rent_info where rent_info.rp_no in ( SELECT rp_no FROM RENTAL_USER_INFO WHERE RENTAL_DATE BETWEEN TRUNC(ADD_MONTHS(sysdate,-2)+1) - TO_CHAR(sysdate,'DD')  AND TRUNC(LAST_DAY(sysdate)) +0.99999421 )
+						  group by rt_no)
+                          union all
+                          ( select rt_comname , 0 as "COUNT" from rental_reg  where   rt_comname not in ( select rent_reg.rt_comname as "COMNAME"
+                        from RENTAL_PRODUCT_info rent_info  , rental_reg rent_reg
+                        where rent_reg.rt_no = rent_info.rt_no and rent_info.rp_no in ( SELECT rp_no FROM RENTAL_USER_INFO WHERE RENTAL_DATE BETWEEN TRUNC(ADD_MONTHS(sysdate,-2)+1) - TO_CHAR(sysdate,'DD')  AND TRUNC(LAST_DAY(sysdate)) +0.99999421 )
+						  group by rent_reg.rt_comname))
+						  ) c_rank order by 3 desc  
+		</select>	
+	
+	<select id="getCompanyRankingAllCnt"  resultType="int">
+			select count(*) from rental_reg       
+	</select>
+	
+	
+ 	
+	<!-- ##############################################3 -->
+	<!-- ##############################################3 -->
+	<!-- ##############################################3 -->	
+	
+	<!-- 공인중개사 realtorListFrom get data -->
+	
+	<select id="getRealtorInfo"   resultType="java.util.HashMap">
+		select
+	            r_reg.r_name as "r_name"
+	            ,r_reg.r_phone as "r_phone"
+	            ,nvl((select count(rs_data.r_no) from REALTOR_SELLER_DATA_ASSIGN rs_data group by rs_data.r_no having rs_data.r_no = r_reg.r_no ) ,0)  as "management"
+	            ,nvl((select count(rs_data.r_no) from REALTOR_SELLER_DATA_ASSIGN rs_data  where rs_data.sr_no in  (select o_check.sr_no from SELL_ROOM_OWNER_CHECK o_check where o_check.check_code in (4,5))
+	                     group by rs_data.r_no having rs_data.r_no = r_reg.r_no ) ,0)  as "finish"
+	            ,nvl( (select trunc(avg(br_score.br_score) ,1)
+                from buyer_realtor_score br_score, REALTOR_SELLER_DATA_ASSIGN rs_data  where r_reg.r_no=br_score.r_no group by rs_data.r_no having rs_data.r_no = r_reg.r_no ) ,0) as "grade"
+       		 from REALTOR_REG r_reg
+	</select>
+	
+	<select id="getSignUpRoot" resultType="java.util.HashMap" >
+		               
+			select 
+			        (select route from code_signup_route c_route_code where c_route_code.route_code = rcode.route_code)    "route_code"
+			         , count(rcode.route_codeCnt)  "route_codeCnt"
+			from
+			(
+			(select
+			             s_route.route_code    "ROUTE_CODE"
+			             , s_route.ri_no           "ROUTE_CODECNT"
+					  from 
+					          signup_route s_route )
+				
+			union all      
+			                
+			(select
+			             bs_route.route_code    "route_code"
+			             , bs_route.b_no          "route_codeCnt"
+					  from 
+					          buyer_signup_route bs_route)
+			union all      
+			                
+			(select
+			             ss_route.route_code    "route_code"
+			             , ss_route.s_no           "route_codeCnt"
+					  from 
+					          seller_signup_route ss_route)
+			union all   
+			                
+			(select
+			             rs_route.route_code    "route_code"
+			             ,rs_route.rt_no           "route_codeCnt"
+					  from 
+					          rental_signup_route rs_route)  
+			                ) rcode   
+			group by  rcode.route_code
+	</select>
+	
+	<select id="getRealtorListAllCnt" resultType="int">
+		select count(*) from REALTOR_REG
+	</select>
+	
+	<!-- ##############################################3 -->
+	<!-- ##############################################3 -->
+	<!-- ##############################################3 -->	
+	
+	
+	<update id="insertStopValue" parameterType="com.naver.erp.MasterE_stopDTO" >
+		update e_stop set 	${checkValue} = 'true' 
+	</update>
+	
+	<select id="getStopValue" resultType="java.util.HashMap">
+		select 
+			stop_buyer as "buyer"
+			, stop_seller as "seller"
+			, stop_rental as "rental"
+			, stop_realtor as "realtor"
+		from e_stop
+	</select>
+	
+	<update id="cancelStopValue" parameterType="com.naver.erp.MasterE_stopDTO" >
+		update e_stop set 	${cancelValue} = 'false' 
+	</update>
+
+</mapper>
+
+
+
+

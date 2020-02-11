@@ -1,0 +1,120 @@
+/* body {
+	font-family: 'Roboto', sans-serif;
+	background: #fafaf8;
+}
+ */
+.conatiner {
+	    margin: 0 -35% 0 -35%;
+}
+.wrap {
+	display: -webkit-box;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-box-pack: center;
+	    -ms-flex-pack: center;
+	        justify-content: center;
+	-webkit-box-align: center;
+	    -ms-flex-align: center;
+	        align-items: center;
+	-webkit-box-orient: horizontal;
+	-webkit-box-direction: normal;
+	    -ms-flex-direction: row;
+	        flex-direction: row;
+	width:120%;
+}
+
+.box {
+	margin: 10px;
+	width: 300px;
+	height: 500;
+	text-align: center;
+	border-radius: 3px;
+	-webkit-transition: 200ms ease-in-out;
+	-o-transition: 200ms ease-in-out;
+	transition: 200ms ease-in-out;
+	-webkit-box-shadow: 0 0 15px rgba(0,0,0,0.3);
+	        box-shadow: 0 0 15px rgba(0,0,0,0.3);
+}
+.box:hover {
+	margin-bottom: -10px;
+	-webkit-box-shadow: 0 0 5px rgba(0,0,0,0.7);
+	        box-shadow: 0 0 5px rgba(0,0,0,0.7);
+}
+.box h1 {
+	color: #fff;
+	padding:10px;
+	margin-top: 10px;
+	text-align: center;
+	font-weight: 100;
+	font-size: 16px;
+	background: rgba(63, 93, 79, 0.8);/* 
+	-webkit-box-shadow: 0 0 30px #abb5ad;
+	        box-shadow: 0 0 30px #abb5ad; */
+	font-weight: bolder;
+}
+
+.box h2 {
+	color: #fff;
+    padding: 10px;
+    margin-bottom: 1px;
+    text-align: center;
+    font-weight: 100;
+    font-size: 14px;
+    background: rgba(134, 124, 99, 0.8);
+    font-weight: bolder;
+}
+
+.date h5 {
+	color: #fff;
+	font-weight: 300;
+	text-align: center;
+	letter-spacing: 3px;
+	text-shadow: 0 0 3px rgba(0,0,0,0.9);
+}
+.poster {
+	width: 90px;
+    height: 90px;
+    margin: 5% auto;
+    position: relative;
+    border-radius: 100px;
+    max-width: -webkit-fill-available;
+}
+.poster h4 {
+	top: 16px;
+	color: #fff;
+	position: relative;
+	font-size: 80px;
+	text-align: center;
+	font-weight: 100;
+}
+
+/* POSTER*/
+.p1 {
+	background: #ffffff;  /* fallback for old browsers */
+	max-width: -webkit-fill-available;
+	-webkit-box-shadow: 0 0 20px #b1ccb0;
+	        box-shadow: 0 0 20px #b1ccb0;
+}
+
+
+/*  FOLLOW*/
+.Follow {	  background:url("https://pbs.twimg.com/profile_images/959092900708544512/v4Db9QRv_bigger.jpg")no-repeat center / contain;
+	width: 50px;
+	height: 50px;
+	bottom: 9px;
+	right: 20px;
+	display:block;
+	position:fixed;
+	border-radius:50%;
+	z-index:999;
+	animation:  rotation 10s infinite linear;
+	}
+
+@-webkit-keyframes rotation {
+		from {
+				-webkit-transform: rotate(0deg);
+		}
+		to {
+				-webkit-transform: rotate(359deg);
+		}
+}

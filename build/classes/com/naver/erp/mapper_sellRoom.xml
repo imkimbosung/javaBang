@@ -1,0 +1,765 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.naver.erp.SellerDAO">
+
+	<insert id='insertSellRoom' parameterType="com.naver.erp.SellerRoomDTO">
+		insert into sell_room(
+		   sr_no 
+		    ,s_no 
+		    ,sr_roomsize 
+		    ,sr_builddate 
+		    ,sr_date
+		)
+		values (
+		   (select nvl(max(sr_no),0)+1 from sell_room)
+		   , (select s_no from seller_reg where s_id=#{s_id})
+		   , #{sr_roomsize}
+		   , #{sr_builddate}
+		   , sysdate   
+		)
+	</insert>	
+	
+	<select id='seletSr_no' parameterType="com.naver.erp.SellerRoomDTO" resultType="int">
+		select max(sr_no) from sell_room
+	</select>
+	
+	<insert id='insertTypeSellRoom' parameterType="com.naver.erp.SellerRoomDTO" >
+		insert into type_sell_room(
+			sr_no
+			, roomtype_code
+		)
+		values (
+			#{sr_no}
+			, ${roomtype_code}
+		)
+	</insert>
+	
+	<insert id='insertSellRoomPetAvail' parameterType="com.naver.erp.SellerRoomDTO" >
+		insert into sell_room_pet_availability(
+			sr_no
+			, pet_available_code
+		)
+		values(
+			#{sr_no}
+			, #{pet_available_code}
+		)
+	</insert>
+	
+	<insert id='insertSellRoomParkAvail' parameterType="com.naver.erp.SellerRoomDTO" >
+		insert into sell_room_parking_availability(
+			sr_no
+			, parking_available_code
+		)
+		values(
+			#{sr_no}
+			, #{parking_available_code}
+		)
+	</insert>
+	
+	<insert id='insertSellRoomHCTypeAvail' parameterType="com.naver.erp.SellerRoomDTO" >
+		insert into sell_room_hc_type(
+			sr_no
+			, hc_type_code
+		)
+		values(
+			#{sr_no}
+			, #{hc_type_code}
+		)
+	</insert>
+	
+	<insert id='insertSellRoomManageFeeYN' parameterType="com.naver.erp.SellerRoomDTO" >
+		insert into sell_room_manage_fee(
+			sr_no
+			, manage_fee_available_code
+		)
+		values(
+			#{sr_no}
+			, #{manage_fee_available_code}
+		)
+	</insert>
+	
+	<insert id='insertSellRoomElvYN' parameterType="com.naver.erp.SellerRoomDTO" >
+		insert into sell_room_elv(
+			sr_no
+			, elv_available_code
+		)
+		values(
+			#{sr_no}
+			, #{elv_available_code}
+		)
+	</insert>
+	
+	<insert id='insertSellRoomLiveInType' parameterType="com.naver.erp.SellerRoomDTO" >
+		insert into sell_room_live_in_type(
+			sr_no
+			, live_in_type_code
+		)
+		values(
+			#{sr_no}
+			, #{live_in_type_code}
+		)
+	</insert>
+
+	
+	<insert id='insertSellRoomOptionType' parameterType="com.naver.erp.SellerRoomDTO" >
+		insert into sell_room_option_type(
+			sr_no
+			, option_type_code
+		)
+		values(
+			#{sr_no}
+			, #{option_type_code}
+		)
+	</insert>
+	
+	<insert id='insertSellRoomSellType' parameterType="com.naver.erp.SellerRoomDTO" >
+		insert into sell_room_sell_type(
+			sr_no
+			, sell_type_code
+		)
+		values(
+			#{sr_no}
+			, #{sell_type_code}
+		)
+	</insert>
+	
+	<insert id='insertSellRoomOptionSelect' parameterType="com.naver.erp.SellerRoomDTO" >
+		insert ALL 
+		<foreach collection="option_select_code" item="option_select_code" separator=" " close="SELECT * FROM DUAL">
+			into sell_room_option_select(sr_no, option_select_code)
+			values		
+           		(#{sr_no} , #{option_select_code})
+        </foreach>
+			
+	</insert>
+	
+	<!-- mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm -->
+	<!-- SELL_ROOM_ADDR 데이터 저장을 위한 query문 작성 -->
+	<insert id='insertSellRoomAddr' parameterType="com.naver.erp.SellerRoomDTO" >
+		insert into sell_room_addr(
+			sr_no
+			, sr_zip_code
+			, sr_addr
+			, sr_detail_addr
+			, sr_room_floor
+		)
+		values(
+			#{sr_no}
+			, #{sr_zip_code}
+			, #{sr_addr}
+			, #{sr_detail_addr}
+			, #{sr_room_floor}
+		)
+	</insert>
+	<!-- mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm -->
+	
+	<!-- mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm -->
+	<!-- ONE_ROOM_PRICE, JEONSE_PRICE, SALE_PRICE 데이터 저장을 위한 속성변수 선언 -->
+	
+	<insert id='insertSalePrice' parameterType="com.naver.erp.SellerRoomDTO" >
+		insert into sale_price(
+			sr_no
+			, price_sale
+		)
+		values(
+			#{sr_no}
+			, ${price_sale}
+		)
+	</insert>
+
+	<insert id='insertJeonsePrice' parameterType="com.naver.erp.SellerRoomDTO" >
+		<if test="price_jeonse != null">
+		insert into jeonse_price(
+			sr_no
+			, price_jeonse
+		)
+		values(
+			#{sr_no}
+			, ${price_jeonse}
+		)
+		</if>
+	</insert>
+	<insert id='insertOneRoomPrice' parameterType="com.naver.erp.SellerRoomDTO" >
+		<if test="deposit != null and monthly_rent != null ">
+		insert into one_room_price(
+			sr_no
+			, deposit
+			, monthly_rent
+		)
+		values(
+			#{sr_no}
+			, ${deposit}
+			, ${monthly_rent}
+		)
+		</if>
+	</insert>
+	<!-- OWNERCHECKCODE insert DEFAULT=1 20200104 SOYEON ADD-->
+	<insert id='insertCheckCode' parameterType="com.naver.erp.SellerRoomDTO" >
+		insert into SELL_ROOM_OWNER_CHECK(
+			sr_no
+			, check_code
+		)
+		values(
+			#{sr_no}
+			, 1
+		)
+	</insert>
+	
+	<!-- mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm -->
+	<!-- 
+	(select nvl(max(sr_no),0)+1 from sell_room) -->
+	
+	
+	
+	
+	
+	
+	
+	
+	<!-- mmmmmmmmmmmmmmmmmmmmmmmm 소연's 코딩 mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm -->
+	<!-- 등록된 공실의 개수 -->
+	
+	<select id="getS_name" parameterType="com.naver.erp.SellerDTO" resultType="String">
+		select s_name from seller_reg where s_id = #{s_id}
+	</select>
+	
+	
+	<select id="getS_no" parameterType="String" resultType="int">
+		select s_no from seller_reg where s_id = #{s_id};                              
+	</select>
+	
+	
+	
+   
+	<select id="getEmptyRoomAllCnt" parameterType="com.naver.erp.SellerRoomSearchDTO" resultType="int">
+		select count(*) from sell_room sr, seller_reg srg, sell_room_owner_check sroc
+        where 	srg.s_id = #{s_id} and
+        		<!-- sr.sr_no = #{sr_no} -->
+        		sr.s_no = srg.s_no and
+        		sr.sr_no = sroc.sr_no and
+             	sroc.check_code!=5
+   </select>
+   <!-- 등록된 공실의 리스트 목록 -->
+   <select id="getEmptyRoomList" parameterType="com.naver.erp.SellerRoomSearchDTO" resultType="java.util.HashMap">
+      select * from (
+         select zzz.*, rownum RNUM from (
+            select
+                srg.s_no                                                                                                                              as "s_no"
+                , sr.sr_no                                                                                                                            as "sr_no"
+                , to_char(sr.sr_date,'YYYY-MM-DD')                                                                                                    as "reg_date"
+                , sra.sr_addr                                                                                                                         as "sr_main_addr"
+                , sra.sr_detail_addr                                                                                                                  as "sr_addr_detail"
+                , (select csrt.roomtype from code_sell_room_type csrt         
+                    where csrt.roomtype_code=tsr.roomtype_code  and tsr.sr_no =sr.sr_no)                                                              as "sr_roomtype"
+                , (select srst.sell_type_code from sell_room_sell_type srst where srst.sr_no = sr.sr_no)                                              as "selltype_code"
+                , (select cst.sell_type from code_sell_type cst, sell_room_sell_type srst
+                    where srst.sell_type_code = cst.sell_type_code and srst.sr_no = sr.sr_no)                                                         as "sr_selltype"
+                , (select srot.option_type_code  from sell_room_option_type srot where srot.sr_no = sr.sr_no)                                         as "option_code"
+                , (select cot.option_type from code_option_type cot, sell_room_option_type srot
+                    where cot.option_type_code = srot.option_type_code and srot.sr_no = sr.sr_no)                                                     as "sr_optiontype"
+                , orp.monthly_rent                                                                                                                    as "monthly_rent"
+                , orp.deposit                                                                                                                         as "deposit"
+                , jp.price_jeonse                                                                                                                     as "price_jeonse"
+                , sp.price_sale                                                                                                                       as "price_sale"
+                , (select to_char(rsda.as_date,'yyyy-mm-dd ') from realtor_seller_data_assign rsda
+                where rsda.sr_no = sr.sr_no)                                                                              as "open_date_start"
+                , (select to_char(add_months(rsda.as_date, 1),'yyyy-mm-dd ') from realtor_seller_data_assign rsda
+                where rsda.sr_no = sr.sr_no)                                                                              as "open_date_end"
+                , (select sroc.check_code from code_sell_room_owner_check csroc
+                   where sroc.check_code=csroc.check_code and sroc.sr_no = sr.sr_no)                                                   as "check_owner_code"
+                , (select csroc.check_type from code_sell_room_owner_check csroc
+                   where sroc.check_code=csroc.check_code and sroc.sr_no = sr.sr_no)                                                   as "check_owner"   
+                , sysdate																											   as "sysdate"         
+            from    seller_reg srg, sell_room sr,
+                    type_sell_room tsr, sell_room_addr sra,
+                    one_room_price orp, jeonse_price jp, sale_price sp , sell_room_owner_check sroc
+            where   srg.s_id = #{s_id} and
+                   <!-- sr.sr_no = #{sr_no} -->
+                    srg.s_no = sr.s_no and
+                    sr.sr_no = tsr.sr_no and
+                    sra.sr_no = sr.sr_no and
+                    orp.sr_no(+) = sr.sr_no and
+                    jp.sr_no(+) = sr.sr_no and
+                    sp.sr_no(+) = sr.sr_no and    
+                    sr.sr_no = sroc.sr_no and
+                    sroc.check_code !=5
+            order by sr.sr_no desc
+            ) zzz
+       )where
+            <![CDATA[
+               RNUM>=${selectPageNo*rowCntPerPage-rowCntPerPage+1}
+               and RNUM<=${selectPageNo*rowCntPerPage}
+               ]]>
+   </select>
+   <!-- 공실상세정보 불러오기 -->
+   <select id="getSellerInfoDTO" parameterType="int" resultType="com.naver.erp.SellerInfoDTO">
+		
+		    select
+		        (select srg.s_no from seller_reg srg where srg.s_no = sr.s_no)  as "s_no"
+		        , (select srg.s_name from seller_reg srg where srg.s_no = sr.s_no)  as "s_name"
+		        , sr.sr_no         as "sr_no"
+		        , sr.sr_roomsize   as "sr_roomsize"
+		        , to_char(sr.sr_date,'YYYY-MM-DD')  as "reg_date"
+		        , (select sra.sr_addr from sell_room_addr sra where sra.sr_no = sr.sr_no)   as "sr_main_addr"
+		        , (select sra.sr_detail_addr from sell_room_addr sra where sra.sr_no = sr.sr_no)    as "sr_addr_detail"
+		        , (select tsr.roomtype_code from type_sell_room tsr where tsr.sr_no = sr.sr_no)     as "roomtype_code"
+		        , (select csrt.roomtype from code_sell_room_type csrt, type_sell_room tsr
+		            where csrt.roomtype_code=tsr.roomtype_code and tsr.sr_no =sr.sr_no)                 as "sr_roomtype"
+		        , (select srst.sell_type_code from sell_room_sell_type srst where srst.sr_no = sr.sr_no)    as "selltype_code"
+		        , (select cst.sell_type from code_sell_type cst, sell_room_sell_type srst
+		            where srst.sell_type_code = cst.sell_type_code and srst.sr_no = sr.sr_no)           as "sr_selltype"
+		        , (select srot.option_type_code  from sell_room_option_type srot where srot.sr_no = sr.sr_no)   as "option_code"
+		        , (select cot.option_type from code_option_type cot, sell_room_option_type srot
+		            where cot.option_type_code = srot.option_type_code and srot.sr_no = sr.sr_no)     as "sr_optiontype"
+		        , (select orp.monthly_rent from one_room_price orp where orp.sr_no = sr.sr_no)      as "monthly_rent"
+		        , (select orp.deposit from one_room_price orp where orp.sr_no = sr.sr_no)      as "deposit"
+		        , (select jp.price_jeonse from jeonse_price jp where jp.sr_no = sr.sr_no)      as "price_jeonse"
+		        , (select sp.price_sale from sale_price sp where sp.sr_no = sr.sr_no)          as "price_sale"
+		        , sroc.check_code                                           as "check_owner_code"
+		        , (select csroc.check_type from code_sell_room_owner_check csroc
+		            where sroc.check_code=csroc.check_code and sroc.sr_no = sr.sr_no)      as "check_owner"
+		        , (select SUBSTR(XMLAgg(XMLElement(x,',',option_select_code) order by option_select_code).EXTRACT('//text()'),2) selected_option from sell_room_option_select
+		            where sr_no = sr.sr_no) as "selected_option"
+		    from sell_room sr, sell_room_owner_check sroc
+		    where 	sr.sr_no = #{sr_no} and
+		    		sroc.sr_no = sr.sr_no
+		    order by sr.sr_no desc
+    </select>
+   <!-- 수정,삭제할 공실개수 카운트 -->
+   <select id="getEmptyListCnt" parameterType="com.naver.erp.SellerInfoDTO" resultType="int">
+      select count(*) from
+      (
+          select
+                    srg.s_name         																as "s_name"
+                   , srg.s_pwd         																as "s_pwd"
+                   , sr.sr_no             															as "sr_no"
+                   , tsr.roomtype_code   															as "roomtype_code"
+                   ,(select a.roomtype from code_sell_room_type a
+                   	where a.roomtype_code=tsr.roomtype_code  and tsr.sr_no =sr.sr_no) 				as"sr_roomtype"
+                   , srst.sell_type_code   															as "selltype_code"
+                   , (select cst.sell_type from code_sell_type cst
+                   	where srst.sell_type_code = cst.sell_type_code and srst.sr_no = sr.sr_no) 		as "sr_selltype"
+                   , sra.sr_addr           															as "sr_main_addr"
+                   , sra.sr_detail_addr           													as "sr_addr_detail"
+                   , srot.option_type_code  														as "option_code"
+                   , (select cot.option_type from code_option_type cot
+                   	where cot.option_type_code = srot.option_type_code and srot.sr_no = sr.sr_no)  	as "sr_optiontype"
+         from	seller_reg srg , sell_room sr,
+              	type_sell_room tsr, sell_room_addr sra, sell_room_sell_type srst, sell_room_option_type srot
+         where	sr.sr_no = #{sr_no} and
+               	srg.s_no = sr.s_no and
+                sr.sr_no = tsr.sr_no and
+                sra.sr_no = sr.sr_no and
+                srst.sr_no = sr.sr_no and
+                srot.sr_no = sr.sr_no
+        )
+   </select>
+   <!-- 수정,삭제할 공실의 비밀번호 개수 카운트 -->
+   <select id="getPwdCnt" parameterType="com.naver.erp.SellerInfoDTO" resultType="int">
+      select count(*) from
+      (
+          select
+                    srg.s_name         																as "s_name"
+                   , srg.s_pwd         																as "s_pwd"
+                   , sr.sr_no             															as "sr_no"
+                   , tsr.roomtype_code   															as "roomtype_code"
+                   ,(select a.roomtype from code_sell_room_type a
+                   	where a.roomtype_code=tsr.roomtype_code  and tsr.sr_no =sr.sr_no) 				as"sr_roomtype"
+                   , srst.sell_type_code   															as "selltype_code"
+                   , (select cst.sell_type from code_sell_type cst
+                   	where srst.sell_type_code = cst.sell_type_code and srst.sr_no = sr.sr_no) 		as "sr_selltype"
+                   , sra.sr_addr           															as "sr_main_addr"
+                   , sra.sr_detail_addr           													as "sr_addr_detail"
+                   , srot.option_type_code  														as "option_code"
+                   , (select cot.option_type from code_option_type cot
+                   	where cot.option_type_code = srot.option_type_code and srot.sr_no = sr.sr_no)  	as "sr_optiontype"
+         from	seller_reg srg , sell_room sr,
+              	type_sell_room tsr, sell_room_addr sra, sell_room_sell_type srst, sell_room_option_type srot
+         where	sr.sr_no = #{sr_no} and
+         		srg.s_pwd = #{s_pwd} and
+               	srg.s_no = sr.s_no and
+                sr.sr_no = tsr.sr_no and
+                sra.sr_no = sr.sr_no and
+                srst.sr_no = sr.sr_no and
+                srot.sr_no = sr.sr_no
+        )
+   </select>
+   
+   
+<!-- 방형태 수정 -->
+	<update id="updateRoomType" parameterType="com.naver.erp.SellerInfoDTO">
+      		update type_sell_room
+      		set   roomtype_code = #{roomtype_code}
+      		where sr_no = #{sr_no}
+	</update>
+	<!-- 옵션형태 수정 -->
+   	<update id="updateOptionType" parameterType="com.naver.erp.SellerInfoDTO">
+      	update sell_room_option_type
+      	set option_type_code = #{option_code}
+      	where sr_no = #{sr_no}
+   	</update>
+   	
+	<delete id="deleteOptionSelected" parameterType="com.naver.erp.SellerInfoDTO">
+		delete from sell_room_option_select 
+		where sr_no = #{sr_no}	
+	</delete> 
+	
+	<insert id='insertOptionSelected' parameterType="com.naver.erp.SellerInfoDTO" >
+			insert ALL 
+		<foreach collection="select_option" item="select_option" separator=" " close="SELECT * FROM DUAL">
+			into sell_room_option_select(sr_no, option_select_code)
+			values		
+           		(#{sr_no} , #{select_option})
+        </foreach>
+	</insert>
+	
+  	 <!-- 등록된 공실 삭제 -->
+   	<delete id="deleteList" parameterType="com.naver.erp.SellerInfoDTO">
+      	delete from sell_room
+      	where sr_no = #{sr_no}
+   	</delete>
+   	<!-- 계약완료 -->
+   	
+   	
+   
+     	<select id="getEmptyUpdateListCnt" parameterType="com.naver.erp.SellerInfoDTO" resultType="int">
+    select count(*) 
+    		from (
+				select
+            		(select srg.s_no from seller_reg srg where srg.s_no = sr.s_no)  as "s_no"
+            		, (select srg.s_name from seller_reg srg where srg.s_no = sr.s_no)  as "s_name"
+            		, sr.sr_no         as "sr_no"
+            		, sr.sr_roomsize   as "sr_roomsize"
+            		, to_char(sr.sr_date,'YYYY-MM-DD')  as "reg_date"
+            		, (select sra.sr_addr from sell_room_addr sra where sra.sr_no = sr.sr_no)   as "sr_main_addr"
+            		, (select sra.sr_detail_addr from sell_room_addr sra where sra.sr_no = sr.sr_no)    as "sr_addr_detail"
+            		, (select tsr.roomtype_code from type_sell_room tsr where tsr.sr_no = sr.sr_no)     as "roomtype_code"
+            		, (select csrt.roomtype from code_sell_room_type csrt, type_sell_room tsr
+                		where csrt.roomtype_code=tsr.roomtype_code and tsr.sr_no =sr.sr_no)                 as "sr_roomtype"
+            		, (select srst.sell_type_code from sell_room_sell_type srst where srst.sr_no = sr.sr_no)    as "selltype_code"
+            		, (select cst.sell_type from code_sell_type cst, sell_room_sell_type srst
+                		where srst.sell_type_code = cst.sell_type_code and srst.sr_no = sr.sr_no)           as "sr_selltype"
+            		, (select srot.option_type_code  from sell_room_option_type srot where srot.sr_no = sr.sr_no)   as "option_code"
+            		, (select cot.option_type from code_option_type cot, sell_room_option_type srot
+                		where cot.option_type_code = srot.option_type_code and srot.sr_no = sr.sr_no)     as "sr_optiontype"
+            		, (select orp.monthly_rent from one_room_price orp where orp.sr_no = sr.sr_no)      as "monthly_rent"
+            		, (select orp.deposit from one_room_price orp where orp.sr_no = sr.sr_no)      as "deposit"
+            		, (select jp.price_jeonse from jeonse_price jp where jp.sr_no = sr.sr_no)      as "price_jeonse"
+            		, (select sp.price_sale from sale_price sp where sp.sr_no = sr.sr_no)          as "price_sale"
+            		, sroc.check_code                                           as "check_owner_code"
+            		, (select csroc.check_type from code_sell_room_owner_check csroc
+                		where sroc.check_code=csroc.check_code and sroc.sr_no = sr.sr_no)      as "check_owner"
+        		from sell_room sr, sell_room_owner_check sroc
+        	where sr.sr_no = #{sr_no} and sroc.sr_no = sr.sr_no and sroc.check_code=4
+        	order by sr.sr_no desc
+        	)	
+    </select>
+   	<!-- ============================================================================================================================soyeon's coding 2020.01.12 -->
+   	<!-- final contract confirm -->
+   	<update id="updateConfirmCode" parameterType="com.naver.erp.SellerInfoDTO">
+   		update sell_room_owner_check
+   		set check_code = 5
+   		where sr_no = #{sr_no}
+   	</update>
+   	
+   	<!-- final contract confirm Date -->
+   	<update id='updateConfirmDate' parameterType="com.naver.erp.SellerInfoDTO">
+   		update realtor_seller_data_assign   	
+   		set end_date = sysdate
+   		where sr_no=#{sr_no}
+   	</update>
+   	<select id="getS_name1" parameterType="com.naver.erp.SellerRoomSearchDTO" resultType="String">
+		select s_name from seller_reg where s_id = #{s_id}
+	</select>
+
+	<!--  ************ code_sell_room_type테이블 데이터 가져오기 ************-->	
+	<select id="getRoomTypeCode" parameterType="int" resultType="java.util.HashMap">
+			select
+				roomtype_code||'' as "roomtype_code",
+				roomtype as "roomtype"
+			from code_sell_room_type 
+			order by roomtype_code	  
+	</select>
+
+	<!--  ************ code_option_type테이블 데이터 가져오기 ************-->	
+	<select id="getOptionTypeCode" parameterType="int" resultType="java.util.HashMap">
+			select
+				option_type_code||'' as "option_type_code",
+				option_type as "option_type"
+			from code_option_type 
+			order by option_type_code	  
+	</select>
+	
+	<!--  ************ code_option_select테이블 데이터 가져오기 ************-->	
+	<select id="getOptionSelectCode" parameterType="int" resultType="java.util.HashMap">
+			select
+				option_select_code||'' as "option_select_code",
+				option_select_type as "option_select_type"
+			from code_option_select 
+			order by option_select_code	  
+	</select>
+	
+<!-- *******************************************************************************************2020.01.27 수정********************* -->
+	
+	<select id="getRoomTypeCode1" resultType="java.util.HashMap">
+			select
+				roomtype_code||'' as "roomtype_code",
+	            roomtype as "roomtype"
+	         from code_sell_room_type 
+	         order by roomtype_code     
+   </select>
+   
+<!-- *******************************************************************************************2020.01.27 수정********************* -->
+	
+	
+
+	<!--  ************ code_sell_type테이블 데이터 가져오기 ************-->	
+	<select id="getSellTypeCode" resultType="java.util.HashMap">
+			select
+				sell_type_code||'' as "sell_type_code",
+				sell_type as "sell_type"
+			from code_sell_type 
+			order by sell_type_code	  
+	</select>
+
+
+	<!--  ************ code_option_type테이블 데이터 가져오기 ************-->	
+	<select id="getOptionType" resultType="java.util.HashMap">
+			select
+				option_type_code||'' as "option_type_code",
+				option_type as "option_type"
+			from code_option_type 
+			order by option_type_code	  
+	</select>
+	
+	<select id="getOptionSelectCode1" resultType="java.util.HashMap">
+			select
+				option_select_code||'' as "option_select_code",
+				option_select_type as "option_select_type"
+			from code_option_select 
+			order by option_select_code	  
+	</select>
+	
+	<!--  ************ codePetAvailable테이블 데이터 가져오기 2020.01.20 ************-->	
+	<select id="getPetAvailableCode" resultType="java.util.HashMap">
+			select
+				pet_available_code||'' as "pet_available_code",
+				pet_available as "pet_available"
+			from code_pet_availability 
+			order by pet_available_code	  
+	</select>
+
+	<!--  ************ codeElv테이블 데이터 가져오기 2020.01.20 ************-->	
+	<select id="getElvCode" resultType="java.util.HashMap">
+			select
+				elv_available_code||'' as "elv_available_code",
+				elv_available as "elv_available"
+			from code_elv
+			order by elv_available_code	  
+	</select>
+
+	<!--  ************ codeHcType테이블 데이터 가져오기 2020.01.20 ************-->	
+	<select id="getHcTypeCode" resultType="java.util.HashMap">
+			select
+				hc_type_code||'' as "hc_type_code",
+				hc_type as "hc_type"
+			from code_hc_type
+			order by hc_type_code	  
+	</select>
+
+	<!--  ************ codeLiveInType테이블 데이터 가져오기 2020.01.20 ************-->	
+	<select id="getLiveInTypeCode" resultType="java.util.HashMap">
+			select
+				live_in_type_code||'' as "live_in_type_code",
+				live_in_type as "live_in_type"
+			from code_live_in_type 
+			order by live_in_type_code	  
+	</select>
+
+	<!--  ************ codeManageFee테이블 데이터 가져오기 2020.01.20 ************-->	
+	<select id="getManageFeeCode" resultType="java.util.HashMap">
+			select
+				manage_fee_available_code||'' as "manage_fee_available_code",
+				manage_fee_available as "manage_fee_available"
+			from code_manage_fee 
+			order by manage_fee_available_code	  
+	</select>
+
+	<!--  ************ codeParkingAvailable테이블 데이터 가져오기 2020.01.20 ************-->	
+	<select id="getParkingAvailableCode" resultType="java.util.HashMap">
+			select
+				parking_available_code||'' as "parking_available_code",
+				parking_available as "parking_available"
+			from code_parking_availability 
+			order by parking_available_code	  
+	</select>
+	
+	
+	
+	<!-- *******************************************************************************************2020.01.27 수정********************* -->
+	
+	
+	
+	<!-- ************* seller id/pwd ****************** -->
+	<select id="getSellerId" parameterType="com.naver.erp.SellerSignupDTO" resultType="String">
+		select s_id from SELLER_REG
+		where
+			s_name=#{s_name} and s_jumin=#{s_jumin}
+	</select>
+
+	
+	<select id="getSellerPwdCnt" parameterType="com.naver.erp.SellerSignupDTO" resultType="String">
+		select s_pwd from SELLER_REG
+		where
+			s_id=#{s_id} and s_name=#{s_name} and s_jumin=#{s_jumin}
+	</select>
+	
+	<!-- ****************************************get seller info from DataBase************************************* -->
+	<select id="getSellerDTO" parameterType="String" resultType="com.naver.erp.SellerDTO">
+		select
+			s_no			as "s_no",
+			s_id			as "s_id", 	
+			s_pwd			as "s_pwd",
+			s_name			as "s_name"
+		from seller_reg
+		where s_id=#{s_id}
+	</select>
+	
+	<select id="getSellerPwdCheck" parameterType="com.naver.erp.SellerDTO" resultType="int">
+		select count(*) from seller_reg
+		where s_pwd = #{s_pwd} and s_id = #{s_id}
+	</select>
+	
+	<update id="updateSeller" parameterType="com.naver.erp.SellerDTO">
+		update seller_reg
+		set s_pwd = #{s_pwd}
+		where s_id = #{s_id}
+	</update>
+	
+	<select id="getSellerCnt" parameterType="com.naver.erp.SellerDTO" resultType="int">
+		select count(*) from seller_reg
+		where s_id=#{s_id} and s_pwd=#{s_pwd}
+	</select>
+	
+	<delete id="deleteSeller" parameterType="com.naver.erp.SellerDTO">
+		delete from seller_reg
+		where s_id=#{s_id} and s_pwd=#{s_pwd}
+	</delete> 
+	
+	<!-- *******************************************************************************************2020.01.27 수정********************* -->	
+	
+	
+	<!-- mmmmmmmmmmmmmmmmmmmmmmmm 소연's 코딩 mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm -->
+	
+	
+	<!-- kbs -->
+	<insert id="insertImageName" parameterType="com.naver.erp.SellerRoomDTO">
+	
+		insert ALL
+		<foreach collection="image_name" item="image_name" separator=" " close="SELECT * FROM DUAL">
+			into SELLROOM_IMAGE(sr_no, image_name)
+			values		
+           		(#{sr_no} , #{image_name})
+        </foreach>
+	    
+	</insert>	
+	
+	
+	
+	
+	<!-- ================추가====================== -->
+	
+	
+	<!-- ===================================================================================== -->
+	<!-- 메인 홈에 띄울 공인중개사 순위 목록을 가져온다  -->
+	<!-- ===================================================================================== -->
+	<select id="topRealtorList"  resultType="java.util.HashMap">
+			select *
+					from(
+						select
+			                zzz.*
+			                ,rownum RNUM
+			                from(
+			                    select
+			                        TRUNC(avg(nvl(s.br_score,0)),1) as "br_score"
+			                       ,i.image_name   as    "image_name"
+			                       ,ri.ri_officename 	as	"ri_officename"
+			                       ,r.r_name    as   "r_name"
+			                       ,s.r_no        as "r_no"
+			                    from buyer_realtor_score s, REALTOR_DATA_IMAGE i , realtor_reg r , realtor_info ri
+			                   where        s.r_no(+) = ri.r_no
+			                                     and
+			                                ri.r_no(+) = r.r_no
+			                                    and
+			                                ri.ri_no = i.ri_no
+			                     group by
+			                            i.image_name,
+			                            r.r_name,
+			                            s.r_no ,
+			                            ri.ri_officename
+			                     order by 1 desc
+			                )zzz
+			        )
+			where
+						<![CDATA[
+						rnum>=1 and rnum<=5
+						]]>
+	</select>
+	
+	
+	
+	<select id="getAverageSalePrice" parameterType="com.naver.erp.SellerRoomDTO" resultType="java.util.HashMap" >
+		select
+		        count(srad.sr_no)||''         		as "sr_no"
+        		, to_char( round(avg(sp.price_sale),0), '999,999' )||''	    as "price_sale"
+
+		from
+		        sell_room_addr srad, sale_price sp
+		
+		where
+		        regexp_substr(srad.sr_addr,'[^ ]+',1,2) = regexp_substr(#{sr_addr},'[^ ]+',1,2)   
+		        and srad.sr_no = sp.sr_no
+	</select>
+	
+	<select id="getAverageJeonsePrice" parameterType="com.naver.erp.SellerRoomDTO" resultType="java.util.HashMap" >
+		select
+		        count(srad.sr_no)||''         		as "sr_no"
+        		, to_char( round(avg(jp.price_jeonse),0), '999,999' )||''	    as "price_jeonse"
+
+		from
+		        sell_room_addr srad, jeonse_price jp
+		
+		where
+		        regexp_substr(srad.sr_addr,'[^ ]+',1,2) = regexp_substr(#{sr_addr},'[^ ]+',1,2)   
+		        and srad.sr_no = jp.sr_no
+	</select>
+	
+	<select id="getAverageOneRoomPrice" parameterType="com.naver.erp.SellerRoomDTO" resultType="java.util.HashMap" >
+		select
+		        count(srad.sr_no)||''         		as "sr_no"
+		        , round(avg(orp.deposit),0)||''	    as "deposit"
+		        , round(avg(orp.monthly_rent),0)||''	    as "monthly_rent"
+		
+		from
+		        sell_room_addr srad, one_room_price orp
+				
+		where
+		        regexp_substr(srad.sr_addr,'[^ ]+',1,2) = regexp_substr(#{sr_addr},'[^ ]+',1,2)                         
+		        and srad.sr_no = orp.sr_no
+	</select>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+</mapper>

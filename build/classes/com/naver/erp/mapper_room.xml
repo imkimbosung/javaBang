@@ -1,0 +1,510 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.naver.erp.RoomListDAO">
+	
+	<!--************************************************************************** -->
+	<!-- 게시판 검색하는 select 문을 내포한 select 태그 선언 -->
+	<!-- sql태그의 id를 제외한 나머지 태그의 id는 boardDAO의 메소드명과 동일해야한다 -->
+	<!--************************************************************************** -->
+	<select id="getRoomContent" parameterType="int" resultType="com.naver.erp.RoomListDTO">
+		    select
+        sr.sr_roomsize as "sr_roomsize"
+        ,sra.sr_detail_addr as "sr_detail_addr"
+        ,sra.sr_zip_code as "sr_zip_code"
+        ,sra.sr_addr as "sr_addr"
+        ,sra.sr_room_floor as "sr_room_floor"
+        ,(select cht.hc_type from code_hc_type cht,sell_room_hc_type srht where cht.hc_type_code=srht.hc_type_code and sr_no=#{sr_no}) as "hc_type"
+        ,sr.sr_builddate as "sr_builddate"
+        ,(select ce.ELV_AVAILABLE from code_elv ce,sell_room_elv sre where sre.ELV_AVAILABLE_CODE=ce.ELV_AVAILABLE_CODE and sr_no=#{sr_no}) as "elv"
+        ,(select cpa.PET_AVAILABLE from CODE_PET_AVAILABILITY cpa,SELL_ROOM_PET_AVAILABILITY srpa where cpa.PET_AVAILABLE_CODE=srpa.PET_AVAILABLE_CODE and sr_no=#{sr_no}) as "pet"
+        ,(select cmf.MANAGE_FEE_AVAILABLE from CODE_MANAGE_FEE cmf,SELL_ROOM_MANAGE_FEE srmf where cmf.MANAGE_FEE_AVAILABLE_CODE=srmf.MANAGE_FEE_AVAILABLE_CODE and sr_no=#{sr_no}) as "manage_fee"
+        ,(select cpa.PARKING_AVAILABLE from CODE_PARKING_AVAILABILITY cpa,SELL_ROOM_PARKING_AVAILABILITY srpa where cpa.PARKING_AVAILABLE_CODE=srpa.PARKING_AVAILABLE_CODE and sr_no=#{sr_no}) as "parking"
+        ,(select clit.LIVE_IN_TYPE from CODE_LIVE_IN_TYPE clit,SELL_ROOM_LIVE_IN_TYPE srit where clit.LIVE_IN_TYPE_CODE=srit.LIVE_IN_TYPE_CODE and sr_no=#{sr_no}) as "live_type"
+        ,(select csrt.ROOMTYPE from CODE_SELL_ROOM_TYPE csrt,TYPE_SELL_ROOM tsr where csrt.ROOMTYPE_CODE=tsr.ROOMTYPE_CODE and sr_no=#{sr_no}) as "roomtype"
+        ,(select sell_type from code_sell_type cst,sell_room_sell_type srst where cst.sell_type_code=srst.sell_type_code and sr_no=#{sr_no})as "sell_type"
+        ,nvl((select price_jeonse from jeonse_price jp where jp.sr_no=sr.sr_no and sr.sr_no=#{sr_no}),0)||'' as "jeonse_price"
+        ,nvl((select price_sale from sale_price sp where sp.sr_no=sr.sr_no and sr.sr_no=#{sr_no}),0)||'' as "sale_price"
+        ,nvl((select monthly_rent from one_room_price orp where sr.sr_no=orp.sr_no and sr.sr_no=#{sr_no}),0)||'' as "monthly_rent"
+        ,nvl((select deposit from one_room_price orp where sr.sr_no=orp.sr_no and sr.sr_no=#{sr_no}),0)||'' as "deposit"
+        ,(select OPTION_TYPE from CODE_OPTION_TYPE cot,SELL_ROOM_OPTION_TYPE srot where cot.OPTION_TYPE_CODE=srot.OPTION_TYPE_CODE and sr_no=#{sr_no}) as "option_type"
+        , ri.RI_OFFICENAME as "ri_officename"  
+        ,rr.r_name as "r_name"  
+        ,rr.r_no as "r_no"
+        ,rr.r_phone as "r_phone"
+        ,ra.ri_addr as"ri_addr"
+        ,ra.ri_detail_addr as"ri_detail_addr"
+        ,ri.ri_name as"ri_name"
+        ,ri.ri_main_phone as"ri_main_phone"
+        ,rdi.image_name as "image_name"
+        from SELL_ROOM sr,sell_room_addr sra,REALTOR_REG rr,REALTOR_INFO ri,REALTOR_SELLER_DATA_ASSIGN rsda,REALTOR_ADDR ra,realtor_data_image rdi
+         where 
+         rr.r_no=rsda.r_no
+         and
+         sr.sr_no=rsda.sr_no
+         and
+         ri.r_no=rr.r_no
+         and
+         ra.ri_no=ri.ri_no
+         and   
+         rdi.ri_no=ri.ri_no
+         and      
+         sr.sr_no=#{sr_no}         
+         and 
+         sr.sr_no=sra.sr_no
+	</select>
+	
+	<select id="getrentalList" resultType="java.util.HashMap">
+	select * from
+(select zzz.rp_no||'' as "rp_no",rownum RNUM,zzz.rp_score,zzz.rt_comname as "rt_comname" from
+(select avg(rp_score) as "RP_SCORE",rpr.rp_no,rr.rt_comname from 
+RENTAL_PRODUCT_REVIEW rpr,RENTAL_PRODUCT_INFO rpi,RENTAL_REG rr where rr.rt_no=rpi.rt_no and  rpi.rp_no=rpr.rp_no group by rpr.rp_no,rr.rt_comname  order by 1 desc) zzz)
+	where rnum&gt;=1 and rnum&lt;=5
+	</select>
+	<select id="getFirstAir" resultType="com.naver.erp.RentalProductDTO">
+		select * from (select zzz.*,rownum RNUM  from
+		(select avg(rp_score) as "RP_SCORE",rpr.rp_no as "rp_no",rr.rt_comname as "rt_comname",rpid.rp_content as "rp_content"
+		from rental_product_review rpr,RENTAL_PRODUCT rp,CODE_RENTAL_PRODUCT crp,RENTAL_REG rr,RENTAL_PRODUCT_INFO rpi,RENTAL_PRODUCT_INFO_DETAIL rpid
+		where rpr.rp_no=rp.rp_no and rr.rt_no=rpi.rt_no and rp.rp_no=rpi.rp_no and rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE and rpid.rp_no=rpi.rp_no and
+		rp.RENTAL_PRODUCT_CODE=1 group by rpr.rp_no,rr.rt_comname,rpid.rp_content order by 1 desc) zzz) where rnum=1
+	</select>
+	<select id="getFirstWater" resultType="com.naver.erp.RentalProductDTO">
+		select * from (select zzz.*,rownum RNUM  from
+		(select avg(rp_score) as "RP_SCORE",rpr.rp_no as "rp_no",rr.rt_comname as "rt_comname",rpid.rp_content as "rp_content"
+		from rental_product_review rpr,RENTAL_PRODUCT rp,CODE_RENTAL_PRODUCT crp,RENTAL_REG rr,RENTAL_PRODUCT_INFO rpi,RENTAL_PRODUCT_INFO_DETAIL rpid
+		where rpr.rp_no=rp.rp_no and rr.rt_no=rpi.rt_no and rp.rp_no=rpi.rp_no and rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE and rpid.rp_no(+)=rpi.rp_no and
+		rp.RENTAL_PRODUCT_CODE=2 group by rpr.rp_no,rr.rt_comname,rpid.rp_content order by 1 desc) zzz) where rnum=1
+	</select>
+	<select id="getFirstGas" resultType="com.naver.erp.RentalProductDTO">
+		select * from (select zzz.*,rownum RNUM  from
+		(select avg(rp_score) as "RP_SCORE",rpr.rp_no as "rp_no",rr.rt_comname as "rt_comname",rpid.rp_content as "rp_content"
+		from rental_product_review rpr,RENTAL_PRODUCT rp,CODE_RENTAL_PRODUCT crp,RENTAL_REG rr,RENTAL_PRODUCT_INFO rpi,RENTAL_PRODUCT_INFO_DETAIL rpid
+		where rpr.rp_no=rp.rp_no and rr.rt_no=rpi.rt_no and rp.rp_no=rpi.rp_no and rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE and rpid.rp_no(+)=rpi.rp_no and
+		rp.RENTAL_PRODUCT_CODE=3 group by rpr.rp_no,rr.rt_comname,rpid.rp_content order by 1 desc) zzz) where rnum=1
+	</select>
+	<select id="getFirstTv" resultType="com.naver.erp.RentalProductDTO">
+		select * from (select zzz.*,rownum RNUM  from
+		(select avg(rp_score) as "RP_SCORE",rpr.rp_no as "rp_no",rr.rt_comname as "rt_comname",rpid.rp_content as "rp_content"
+		from rental_product_review rpr,RENTAL_PRODUCT rp,CODE_RENTAL_PRODUCT crp,RENTAL_REG rr,RENTAL_PRODUCT_INFO rpi,RENTAL_PRODUCT_INFO_DETAIL rpid
+		where rpr.rp_no=rp.rp_no and rr.rt_no=rpi.rt_no and rp.rp_no=rpi.rp_no and rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE and rpid.rp_no(+)=rpi.rp_no and
+		rp.RENTAL_PRODUCT_CODE=4 group by rpr.rp_no,rr.rt_comname,rpid.rp_content order by 1 desc) zzz) where rnum=1
+	</select>
+	<select id="getFirstMicro" resultType="com.naver.erp.RentalProductDTO">
+		select * from (select zzz.*,rownum RNUM  from
+		(select avg(rp_score) as "RP_SCORE",rpr.rp_no as "rp_no",rr.rt_comname as "rt_comname",rpid.rp_content as "rp_content"
+		from rental_product_review rpr,RENTAL_PRODUCT rp,CODE_RENTAL_PRODUCT crp,RENTAL_REG rr,RENTAL_PRODUCT_INFO rpi,RENTAL_PRODUCT_INFO_DETAIL rpid
+		where rpr.rp_no=rp.rp_no and rr.rt_no=rpi.rt_no and rp.rp_no=rpi.rp_no and rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE and rpid.rp_no(+)=rpi.rp_no and
+		rp.RENTAL_PRODUCT_CODE=5 group by rpr.rp_no,rr.rt_comname,rpid.rp_content order by 1 desc) zzz) where rnum=1
+	</select>
+	<select id="getFirstWasher" resultType="com.naver.erp.RentalProductDTO">
+		select * from (select zzz.*,rownum RNUM  from
+		(select avg(rp_score) as "RP_SCORE",rpr.rp_no as "rp_no",rr.rt_comname as "rt_comname",rpid.rp_content as "rp_content"
+		from rental_product_review rpr,RENTAL_PRODUCT rp,CODE_RENTAL_PRODUCT crp,RENTAL_REG rr,RENTAL_PRODUCT_INFO rpi,RENTAL_PRODUCT_INFO_DETAIL rpid
+		where rpr.rp_no=rp.rp_no and rr.rt_no=rpi.rt_no and rp.rp_no=rpi.rp_no and rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE and rpid.rp_no(+)=rpi.rp_no and
+		rp.RENTAL_PRODUCT_CODE=6 group by rpr.rp_no,rr.rt_comname,rpid.rp_content order by 1 desc) zzz) where rnum=1
+	</select>
+	<select id="getFirstAircon" resultType="com.naver.erp.RentalProductDTO">
+		select * from (select zzz.*,rownum RNUM  from
+		(select avg(rp_score) as "RP_SCORE",rpr.rp_no as "rp_no",rr.rt_comname as "rt_comname",rpid.rp_content as "rp_content"
+		from rental_product_review rpr,RENTAL_PRODUCT rp,CODE_RENTAL_PRODUCT crp,RENTAL_REG rr,RENTAL_PRODUCT_INFO rpi,RENTAL_PRODUCT_INFO_DETAIL rpid
+		where rpr.rp_no=rp.rp_no and rr.rt_no=rpi.rt_no and rp.rp_no=rpi.rp_no and rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE and rpid.rp_no(+)=rpi.rp_no and
+		rp.RENTAL_PRODUCT_CODE=7 group by rpr.rp_no,rr.rt_comname,rpid.rp_content order by 1 desc) zzz) where rnum=1
+	</select>
+	<select id="getFirstFrig" resultType="com.naver.erp.RentalProductDTO">
+		select * from (select zzz.*,rownum RNUM  from
+		(select avg(rp_score) as "RP_SCORE",rpr.rp_no as "rp_no",rr.rt_comname as "rt_comname",rpid.rp_content as "rp_content"
+		from rental_product_review rpr,RENTAL_PRODUCT rp,CODE_RENTAL_PRODUCT crp,RENTAL_REG rr,RENTAL_PRODUCT_INFO rpi,RENTAL_PRODUCT_INFO_DETAIL rpid
+		where rpr.rp_no=rp.rp_no and rr.rt_no=rpi.rt_no and rp.rp_no=rpi.rp_no and rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE and rpid.rp_no(+)=rpi.rp_no and
+		rp.RENTAL_PRODUCT_CODE=8 group by rpr.rp_no,rr.rt_comname,rpid.rp_content order by 1 desc) zzz) where rnum=1
+	</select>
+	<select id="getFirstCucu" resultType="com.naver.erp.RentalProductDTO">
+		select * from (select zzz.*,rownum RNUM  from
+		(select avg(rp_score) as "RP_SCORE",rpr.rp_no as "rp_no",rr.rt_comname as "rt_comname",rpid.rp_content as "rp_content"
+		from rental_product_review rpr,RENTAL_PRODUCT rp,CODE_RENTAL_PRODUCT crp,RENTAL_REG rr,RENTAL_PRODUCT_INFO rpi,RENTAL_PRODUCT_INFO_DETAIL rpid
+		where rpr.rp_no=rp.rp_no and rr.rt_no=rpi.rt_no and rp.rp_no=rpi.rp_no and rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE and rpid.rp_no(+)=rpi.rp_no and
+		rp.RENTAL_PRODUCT_CODE=9 group by rpr.rp_no,rr.rt_comname,rpid.rp_content order by 1 desc) zzz) where rnum=1
+	</select>
+	<select id="getFirstPrint" resultType="com.naver.erp.RentalProductDTO">
+		select * from (select zzz.*,rownum RNUM  from
+		(select avg(rp_score) as "RP_SCORE",rpr.rp_no as "rp_no",rr.rt_comname as "rt_comname",rpid.rp_content as "rp_content"
+		from rental_product_review rpr,RENTAL_PRODUCT rp,CODE_RENTAL_PRODUCT crp,RENTAL_REG rr,RENTAL_PRODUCT_INFO rpi,RENTAL_PRODUCT_INFO_DETAIL rpid
+		where rpr.rp_no=rp.rp_no and rr.rt_no=rpi.rt_no and rp.rp_no=rpi.rp_no and rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE and rpid.rp_no(+)=rpi.rp_no and
+		rp.RENTAL_PRODUCT_CODE=10 group by rpr.rp_no,rr.rt_comname,rpid.rp_content order by 1 desc) zzz) where rnum=1
+	</select>
+	<select id="getFirstBed" resultType="com.naver.erp.RentalProductDTO">
+		select * from (select zzz.*,rownum RNUM  from
+		(select avg(rp_score) as "RP_SCORE",rpr.rp_no as "rp_no",rr.rt_comname as "rt_comname",rpid.rp_content as "rp_content"
+		from rental_product_review rpr,RENTAL_PRODUCT rp,CODE_RENTAL_PRODUCT crp,RENTAL_REG rr,RENTAL_PRODUCT_INFO rpi,RENTAL_PRODUCT_INFO_DETAIL rpid
+		where rpr.rp_no=rp.rp_no and rr.rt_no=rpi.rt_no and rp.rp_no=rpi.rp_no and rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE and rpid.rp_no(+)=rpi.rp_no and
+		rp.RENTAL_PRODUCT_CODE=11 group by rpr.rp_no,rr.rt_comname,rpid.rp_content order by 1 desc) zzz) where rnum=1
+	</select>
+	<select id="getFirstVide" resultType="com.naver.erp.RentalProductDTO">
+		select * from (select zzz.*,rownum RNUM  from
+		(select avg(rp_score) as "RP_SCORE",rpr.rp_no as "rp_no",rr.rt_comname as "rt_comname",rpid.rp_content as "rp_content"
+		from rental_product_review rpr,RENTAL_PRODUCT rp,CODE_RENTAL_PRODUCT crp,RENTAL_REG rr,RENTAL_PRODUCT_INFO rpi,RENTAL_PRODUCT_INFO_DETAIL rpid
+		where rpr.rp_no=rp.rp_no and rr.rt_no=rpi.rt_no and rp.rp_no=rpi.rp_no and rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE and rpid.rp_no(+)=rpi.rp_no and
+		rp.RENTAL_PRODUCT_CODE=12 group by rpr.rp_no,rr.rt_comname,rpid.rp_content order by 1 desc) zzz) where rnum=1
+	</select>
+	<select id="getFirstStyler" resultType="com.naver.erp.RentalProductDTO">
+		select * from (select zzz.*,rownum RNUM  from
+		(select avg(rp_score) as "RP_SCORE",rpr.rp_no as "rp_no",rr.rt_comname as "rt_comname",rpid.rp_content as "rp_content"
+		from rental_product_review rpr,RENTAL_PRODUCT rp,CODE_RENTAL_PRODUCT crp,RENTAL_REG rr,RENTAL_PRODUCT_INFO rpi,RENTAL_PRODUCT_INFO_DETAIL rpid
+		where rpr.rp_no=rp.rp_no and rr.rt_no=rpi.rt_no and rp.rp_no=rpi.rp_no and rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE and rpid.rp_no(+)=rpi.rp_no and
+		rp.RENTAL_PRODUCT_CODE=13 group by rpr.rp_no,rr.rt_comname,rpid.rp_content order by 1 desc) zzz) where rnum=1
+	</select>
+	<select id="getRoomserachList" parameterType="com.naver.erp.RoomSerachDTO" resultType="java.util.HashMap">
+	  select
+        sr.sr_no||'' as "sr_no"
+        ,sr.s_no||'' as "s_no"
+        ,sr.sr_roomsize as "sr_roomsize"
+        ,sr.sr_builddate as "sr_builddate"
+        ,sra.sr_room_floor as "floor"
+        ,sra.sr_addr as "sr_addr"
+        ,(select roomtype from type_sell_room tsr,code_sell_room_type csrt where csrt.roomtype_code=tsr.roomtype_code and tsr.sr_no=sr.sr_no) as "roomtype"
+        ,(select max(image_name) from sellroom_image si,sell_room sr2 where sr2.sr_no=si.sr_no and sr2.sr_no=sr.sr_no) as "sellroom_image"
+        ,(select sell_type from code_sell_type cst,sell_room_sell_type srst where cst.sell_type_code=srst.sell_type_code and srst.sr_no=sr.sr_no)as "sell_type"
+        ,nvl((select price_jeonse from jeonse_price jp where jp.sr_no=sr.sr_no),0)||'' as "jeonse_price"
+        ,nvl((select price_sale from sale_price sp where sp.sr_no=sr.sr_no),0)||'' as "sale_price"
+        ,nvl((select monthly_rent from one_room_price orp where sr.sr_no=orp.sr_no),0)||'' as "monthly_rent"
+        ,nvl((select deposit from one_room_price orp where sr.sr_no=orp.sr_no),0)||'' as "deposit"
+        from SELL_ROOM sr,sell_room_addr sra,SELL_ROOM_OWNER_CHECK sroc
+        where
+        1=1
+        and
+        sra.sr_no=sr.sr_no 
+        and
+        sroc.sr_no=sr.sr_no
+        and
+        sroc.CHECK_CODE=3  
+		<if test="keyword!=null and keyword.length()>0">
+		and
+		upper(sra.sr_addr) like upper('%${keyword}%')
+		</if>
+		<if test="roomtype!=null and roomtype.length>0">
+			and
+			<foreach collection="roomtype" item="roomtype" open="(" separator="or" close=")">
+				<if test="roomtype.equals('원룸')">
+					(select roomtype from type_sell_room tsr,code_sell_room_type csrt where csrt.roomtype_code=tsr.roomtype_code and tsr.sr_no=sr.sr_no)='원룸'
+				</if>
+
+				<if test="roomtype.equals('투룸')">
+					(select roomtype from type_sell_room tsr,code_sell_room_type csrt where csrt.roomtype_code=tsr.roomtype_code and tsr.sr_no=sr.sr_no)='투룸'
+				</if>
+
+				<if test="roomtype.equals('오피스텔')">
+					(select roomtype from type_sell_room tsr,code_sell_room_type csrt where csrt.roomtype_code=tsr.roomtype_code and tsr.sr_no=sr.sr_no)='오피스텔'
+				</if>
+			</foreach>
+		</if>
+		<if test="selltype!=null and selltype.length>0">
+			and
+			<foreach collection="selltype" item="selltype" open="(" separator="or" close=")">
+				<if test="selltype.equals('월세')">
+					(select sell_type from code_sell_type cst,sell_room_sell_type srst where cst.sell_type_code=srst.sell_type_code and srst.sr_no=sr.sr_no)='월세'
+				</if>
+
+				<if test="selltype.equals('전세')">
+					(select sell_type from code_sell_type cst,sell_room_sell_type srst where cst.sell_type_code=srst.sell_type_code and srst.sr_no=sr.sr_no)='전세'
+				</if>
+
+				<if test="selltype.equals('반전세')">
+					(select sell_type from code_sell_type cst,sell_room_sell_type srst where cst.sell_type_code=srst.sell_type_code and srst.sr_no=sr.sr_no)='반전세'
+				</if>
+				<if test="selltype.equals('매매')">
+					(select sell_type from code_sell_type cst,sell_room_sell_type srst where cst.sell_type_code=srst.sell_type_code and srst.sr_no=sr.sr_no)='매매'
+				</if>
+			</foreach>
+		</if>
+		<if test="dep!=''">
+			and
+				<if test="dep.equals('dep1')">
+				 nvl((select deposit from one_room_price orp where sr.sr_no=orp.sr_no),0)&gt;=0
+				and
+				 nvl((select deposit from one_room_price orp where sr.sr_no=orp.sr_no),0)&lt;=100000
+				</if>
+				<if test="dep.equals('dep2')">
+				nvl((select deposit from one_room_price orp where sr.sr_no=orp.sr_no),0)&gt;=100001
+				and
+				nvl((select deposit from one_room_price orp where sr.sr_no=orp.sr_no),0)&lt;=150000
+				</if>
+				<if test="dep.equals('dep3')">
+				nvl((select deposit from one_room_price orp where sr.sr_no=orp.sr_no),0)&gt;=150001
+				and
+				nvl((select deposit from one_room_price orp where sr.sr_no=orp.sr_no),0)&lt;=200000
+				</if>
+				<if test="dep.equals('dep4')">
+				nvl((select deposit from one_room_price orp where sr.sr_no=orp.sr_no),0)&gt;=200001
+				and
+				nvl((select deposit from one_room_price orp where sr.sr_no=orp.sr_no),0)&lt;=250000
+				</if>
+				<if test="dep.equals('dep5')">
+				nvl((select deposit from one_room_price orp where sr.sr_no=orp.sr_no),0)&gt;=250001
+				and
+				nvl((select deposit from one_room_price orp where sr.sr_no=orp.sr_no),0)&lt;=300000
+				</if>
+				<if test="dep.equals('dep6')">
+				nvl((select deposit from one_room_price orp where sr.sr_no=orp.sr_no),0)&gt;=300001
+				</if>
+		</if>
+		<if test="jeo!=''">
+			and
+				<if test="jeo.equals('jeo1')">
+				nvl((select price_jeonse from jeonse_price jp where jp.sr_no=sr.sr_no),0)&gt;=0
+				and
+				nvl((select price_jeonse from jeonse_price jp where jp.sr_no=sr.sr_no),0)&lt;=100000
+				</if>
+				<if test="jeo.equals('jeo2')">
+				nvl((select price_jeonse from jeonse_price jp where jp.sr_no=sr.sr_no),0)&gt;=100001
+				and
+				nvl((select price_jeonse from jeonse_price jp where jp.sr_no=sr.sr_no),0)&lt;=150000
+				</if>
+				<if test="jeo.equals('jeo3')">
+				nvl((select price_jeonse from jeonse_price jp where jp.sr_no=sr.sr_no),0)&gt;=150001
+				and
+				nvl((select price_jeonse from jeonse_price jp where jp.sr_no=sr.sr_no),0)&lt;=200000
+				</if>
+				<if test="jeo.equals('jeo4')">
+				nvl((select price_jeonse from jeonse_price jp where jp.sr_no=sr.sr_no),0)&gt;=200001
+				and
+				nvl((select price_jeonse from jeonse_price jp where jp.sr_no=sr.sr_no),0)&lt;=250000
+				</if>
+				<if test="jeo.equals('jeo5')">
+				nvl((select price_jeonse from jeonse_price jp where jp.sr_no=sr.sr_no),0)&gt;=250001
+				and
+				nvl((select price_jeonse from jeonse_price jp where jp.sr_no=sr.sr_no),0)&lt;=300000
+				</if>
+				<if test="jeo.equals('jeo6')">
+				nvl((select price_jeonse from jeonse_price jp where jp.sr_no=sr.sr_no),0)&gt;=300001
+				</if>
+		</if>
+		<if test="mon!=''">
+			and
+				<if test="mon.equals('mon1')">
+				nvl((select MONTHLY_RENT from one_room_price orp where sr.sr_no=orp.sr_no),0)&gt;=0
+				and
+				nvl((select MONTHLY_RENT from one_room_price orp where sr.sr_no=orp.sr_no),0)&lt;=50
+				</if>
+				<if test="mon.equals('mon2')">
+				nvl((select MONTHLY_RENT from one_room_price orp where sr.sr_no=orp.sr_no),0)&gt;=51
+				and
+				nvl((select MONTHLY_RENT from one_room_price orp where sr.sr_no=orp.sr_no),0)&lt;=100
+				</if>
+				<if test="mon.equals('mon3')">
+				nvl((select MONTHLY_RENT from one_room_price orp where sr.sr_no=orp.sr_no),0)&gt;=101
+				and
+				nvl((select MONTHLY_RENT from one_room_price orp where sr.sr_no=orp.sr_no),0)&lt;=150
+				</if>
+				<if test="mon.equals('mon4')">
+				nvl((select MONTHLY_RENT from one_room_price orp where sr.sr_no=orp.sr_no),0)&gt;=151
+				and
+				nvl((select MONTHLY_RENT from one_room_price orp where sr.sr_no=orp.sr_no),0)&lt;=200
+				</if>
+				<if test="mon.equals('mon5')">
+				nvl((select MONTHLY_RENT from one_room_price orp where sr.sr_no=orp.sr_no),0)&gt;=201
+				and
+				nvl((select MONTHLY_RENT from one_room_price orp where sr.sr_no=orp.sr_no),0)&lt;=250
+				</if>
+				<if test="mon.equals('mon6')">
+				nvl((select MONTHLY_RENT from one_room_price orp where sr.sr_no=orp.sr_no),0)&gt;=251
+				</if>
+		</if>
+		<if test="sal!=''">
+			and
+				<if test="sal.equals('sal1')">
+				nvl((select price_sale from sale_price sp where sr.sr_no=sp.sr_no),0)&gt;=0
+				and
+				nvl((select price_sale from sale_price sp where sr.sr_no=sp.sr_no),0)&lt;=100000
+				</if>
+				<if test="sal.equals('sal2')">
+				nvl((select price_sale from sale_price sp where sr.sr_no=sp.sr_no),0)&gt;=100001
+				and
+				nvl((select price_sale from sale_price sp where sr.sr_no=sp.sr_no),0)&lt;=150000
+				</if>
+				<if test="sal.equals('sal3')">
+				nvl((select price_sale from sale_price sp where sr.sr_no=sp.sr_no),0)&gt;=150001
+				and
+				nvl((select price_sale from sale_price sp where sr.sr_no=sp.sr_no),0)&lt;=200000
+				</if>
+				<if test="sal.equals('sal4')">
+				nvl((select price_sale from sale_price sp where sr.sr_no=sp.sr_no),0)&gt;=200001
+				and
+				nvl((select price_sale from sale_price sp where sr.sr_no=sp.sr_no),0)&lt;=250000
+				</if>
+				<if test="sal.equals('sal5')">
+				nvl((select price_sale from sale_price sp where sr.sr_no=sp.sr_no),0)&gt;=250001
+				and
+				nvl((select price_sale from sale_price sp where sr.sr_no=sp.sr_no),0)&lt;=300000
+				</if>
+				<if test="sal.equals('sal6')">
+				nvl((select price_sale from sale_price sp where sr.sr_no=sp.sr_no),0)&gt;=300001
+				</if>
+		</if>
+		<if test="roomsize!=''">
+			and
+				<if test="roomsize.equals('roomsize1')">
+				sr.sr_roomsize&gt;=0
+				and
+				sr.sr_roomsize&lt;=5
+				</if>
+				<if test="roomsize.equals('roomsize2')">
+				sr.sr_roomsize&gt;=6
+				and
+				sr.sr_roomsize&lt;=10
+				</if>
+				<if test="roomsize.equals('roomsize3')">
+				sr.sr_roomsize&gt;=11
+				and
+				sr.sr_roomsize&lt;=15
+				</if>
+				<if test="roomsize.equals('roomsize4')">
+				sr.sr_roomsize&gt;=16
+				and
+				sr.sr_roomsize&lt;=20
+				</if>
+				<if test="roomsize.equals('roomsize5')">
+				sr.sr_roomsize&gt;=21
+				and
+				sr.sr_roomsize&lt;=25
+				</if>
+				<if test="roomsize.equals('roomsize6')">
+				sr.sr_roomsize&gt;=26
+				</if>
+		</if>
+		<if test="builddate!=null and builddate.length()>0">
+			and
+				<if test="builddate.equals('전체')">
+				1=1
+				</if>
+				<if test="builddate.equals('1년')">
+				1&gt;=(sysdate-to_date(sr_builddate,'yyyy-mm-dd'))/365
+				</if>
+				<if test="builddate.equals('5년')">
+				5&gt;=(sysdate-to_date(sr_builddate,'yyyy-mm-dd'))/365
+				
+				</if>
+				<if test="builddate.equals('10년')">
+				10&gt;=(sysdate-to_date(sr_builddate,'yyyy-mm-dd'))/365
+				
+				</if>
+				<if test="builddate.equals('15년')">
+				15&gt;=(sysdate-to_date(sr_builddate,'yyyy-mm-dd'))/365
+				
+				</if>
+				<if test="builddate.equals('16년')">
+				15&lt;(sysdate-to_date(sr_builddate,'yyyy-mm-dd'))/365
+				</if>
+		</if>
+	</select>
+	
+	<select id="getselltypeList" resultType="java.util.HashMap">
+	select
+    sell_type as"sell_type"
+    from CODE_SELL_TYPE
+	</select>
+
+	<select id="getroomtypeList" resultType="java.util.HashMap">
+		select
+	    ROOMTYPE as"roomtype"
+	    from CODE_SELL_ROOM_TYPE
+	</select>
+	
+	<select id="getsellerList" parameterType="com.naver.erp.RoomSerachDTO" resultType="java.util.HashMap">
+		select
+		DISTINCT(s_no||'') as"s_no"
+		from sell_room sr
+		where
+		1=1
+	</select>
+	
+	<select id="selectlike" parameterType="com.naver.erp.BuyerLikeRoomDTO" resultType="int">
+		select count(*) from buyer_like_room where b_no=${b_no} and sr_no=${sr_no}
+	</select>
+	
+	<insert id="insertlike" parameterType="com.naver.erp.BuyerLikeRoomDTO">
+		insert into buyer_like_room(b_no,sr_no)values(${b_no},${sr_no})
+	</insert>
+
+	<select id="getlikeroomList" parameterType="int" resultType="java.util.HashMap">
+		select
+		b_no||'' as "b_no"
+		,trim(sr_no)||'' as "sr_no"
+		from
+		buyer_like_room
+		where
+		b_no=#{b_no}
+	</select>
+
+	<delete id="deletelike" parameterType="com.naver.erp.BuyerLikeRoomDTO">
+		delete from
+		buyer_like_room where b_no=#{b_no} and sr_no=#{sr_no}
+	</delete>
+	
+	<select id="getoptionList" parameterType="int" resultType="java.util.HashMap">
+		select 
+       OPTION_SELECT_TYPE as "option_type"
+        from CODE_OPTION_SELECT cos,SELL_ROOM_OPTION_SELECT sros
+        where sr_no=#{sr_no}
+        and cos.OPTION_SELECT_CODE=sros.OPTION_SELECT_CODE
+	</select>
+	
+	<select id="getimageList" parameterType="int" resultType="java.util.HashMap">
+		select 
+       IMAGE_NAME as "image"
+        from SELLROOM_IMAGE
+        where sr_no=#{sr_no}
+        
+	</select>
+	
+	
+	
+	<!-- ============추가============ -->
+	
+	<insert id="getBuyerRealtorReviewcnt" parameterType="com.naver.erp.BuyerRealtorScoreDTO">
+		insert into BUYER_REALTOR_SCORE values(
+		(select nvl(max(brs_no),0)+1 from BUYER_REALTOR_SCORE)
+		,#{b_no}
+		,#{r_no}
+		,#{br_score}
+		)
+	</insert> 
+	
+	<update id="getBuyerRealtorReReviewcnt" parameterType="com.naver.erp.BuyerRealtorScoreDTO">
+		update  BUYER_REALTOR_SCORE set 
+		b_no=#{b_no}
+		,r_no=#{r_no}
+		,br_score=#{br_score}
+		where
+		b_no=#{b_no}
+		and
+		r_no=#{r_no}
+
+		
+	</update> 
+	
+	
+	<select id="getBuyerRealtorScore" parameterType="com.naver.erp.BuyerRealtorScoreDTO" resultType="com.naver.erp.BuyerRealtorScoreDTO">
+		select 
+			nvl(br_score,0) as "br_score"
+		from buyer_realtor_score
+		where b_no=#{b_no}
+		and
+		r_no=#{r_no}
+	</select>
+	
+	<select id="getBuyerAvgScore" parameterType="com.naver.erp.BuyerRealtorScoreDTO" resultType="com.naver.erp.BuyerRealtorScoreDTO">
+		select
+			TRUNC(avg(nvl(br_score,0)),1) as "br_score"
+		from buyer_realtor_score
+		where
+			r_no=#{r_no}
+	</select>
+	
+	
+	<select id="getRoomOptionList" resultType="java.util.HashMap">
+		select OPTION_SELECT_TYPE as "option_select_type" from CODE_OPTION_SELECT
+        
+	</select>
+	
+</mapper>	
+	

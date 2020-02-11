@@ -1,0 +1,711 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.naver.erp.RentalDAO">
+ <insert id="insertrentalCompany" parameterType="com.naver.erp.RentalCompanyDTO">
+		insert into rental_reg(rt_no,rt_id,rt_pwd,rt_comname,rt_comaddr,rt_comaddr_detail,rt_bnum,rt_phone) values(
+		(select nvl(max(rt_no),0)+1 from rental_reg)
+		,#{rt_id}
+		,#{rt_pwd}
+		,#{rt_comname}
+		,#{rt_comaddr}
+		,#{rt_comaddr_detail}
+		,#{rt_bnum}
+		,#{rt_phone}
+		)
+	</insert> 
+	
+	<insert id="insertrentalRoute" parameterType="com.naver.erp.RentalCompanyDTO">
+		insert into RENTAL_SIGNUP_ROUTE values(
+		(select nvl(max(rt_no),0) from rental_reg)
+		,#{rt_route_code}
+		)
+	</insert> 
+	<select id="selectrentalCompany" parameterType="com.naver.erp.RentalCompanyDTO" resultType="int">
+		select count(*) from rental_reg where rt_id=#{rt_id}
+	</select> 
+	
+	<select id="getIdcnt" parameterType="com.naver.erp.RentalCompanyDTO" resultType="int">
+		select count(*) from rental_reg where rt_id=#{rt_id}
+	</select> 
+	
+	<select id="getPwdcnt" parameterType="com.naver.erp.RentalCompanyDTO" resultType="int">
+		select count(*) from rental_reg where rt_pwd=#{rt_pwd}
+	</select> 
+	
+	<select id="getIdPwd" parameterType="com.naver.erp.RentalCompanyDTO" resultType="int">
+		select count(*) from rental_reg where rt_id=#{rt_id} and rt_pwd=#{rt_pwd}
+	</select> 
+	
+	<select id="getRt_no" parameterType="com.naver.erp.RentalCompanyDTO" resultType="com.naver.erp.RentalCompanyDTO">
+		select rt_no as "rt_no",rt_id as "rt_id",rt_comname as"rt_comname" from rental_reg where rt_id=#{rt_id} and rt_pwd=#{rt_pwd}
+	</select>
+	
+	<insert id="insertrentalProduct" parameterType="com.naver.erp.RentalProductDTO">
+		insert into rental_product_info(RT_NO,RP_NO,RP_MODEL_NAME,RP_PRICE,RP_COUNT) values(
+		${rt_no}
+		,(select nvl(max(rp_no),0)+1 from rental_product_info)
+		,#{rp_model_name}
+		,${rp_price}
+		,${rp_count}
+		)
+	</insert> 
+	
+	<insert id="insertrentalContent" parameterType="com.naver.erp.RentalProductDTO">
+		insert into RENTAL_PRODUCT_INFO_DETAIL values(
+		(select rp_no from rental_product_info where rp_model_name='${rp_model_name}')
+		,(select nvl(max(rp_detail_no),0)+1 from RENTAL_PRODUCT_INFO_DETAIL)
+		,#{rp_content}
+		)
+	</insert> 
+	
+	<select id="insertImageName" parameterType="com.naver.erp.RentalProductDTO">
+		insert ALL
+		<foreach collection="image_name" item="image_name" separator=" " close="SELECT * FROM DUAL">
+			into RENTAL_PRODUCT_IMAGE(rp_no, image_name)
+			values		
+           		((select nvl(max(rp_no),0) from rental_product_info) , #{image_name})
+        </foreach>
+	</select> 
+	
+	
+	<select id="getrentalImg" parameterType="int" resultType="java.util.HashMap">
+		select IMAGE_NAME as "image_name" from RENTAL_PRODUCT_IMAGE where rp_no=#{rp_no}
+	</select>
+	
+	<insert id="insertCodetRentalProduct" parameterType="com.naver.erp.RentalProductDTO">
+	
+		insert into rental_product values(
+		(select rp_no from rental_product_info where rt_no=${rt_no} and rp_model_name=#{rp_model_name})
+		,${rental_product_code}
+		)
+	</insert> 
+	
+	<select id="getProductList" resultType="java.util.HashMap">
+		select rental_product_code as "rental_product_code",rental_product as"rental_product" from code_rental_product order by rental_product_code
+	</select>
+	
+	<select id="getrentalTerm" resultType="java.util.HashMap">
+		select
+		rental_term as"rental_term"
+		,rental_term_code as "rental_term_code"
+		from CODE_RENTAL_TERM
+	</select>
+	
+	<select id="getInsertProductList" parameterType="String" resultType="java.util.HashMap">
+		select
+        crp.rental_product as "rental_product"  
+        ,rpi.rp_model_name  as "rp_model_name"   
+        ,rpi.rp_price as "rp_price"   
+        ,rpi.rp_count  as "rp_count"  
+        ,rpi.rp_no as"rp_no" 
+        ,nvl((select avg(rp_score) from  RENTAL_PRODUCT_REVIEW rpr where rpr.rp_no=rp.rp_no ),0) as "rp_score"
+        from CODE_RENTAL_PRODUCT crp,RENTAL_PRODUCT rp,RENTAL_PRODUCT_INFO rpi
+        where 
+        rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE 
+        and
+        rpi.rp_no=rp.rp_no
+        
+        and
+         rpi.rt_no=#{rt_no} 
+	</select>
+	
+	<select id="upProductList" parameterType="int" resultType="com.naver.erp.RentalProductDTO">
+		select
+        crp.rental_product as "rental_product"  
+        ,rpi.rp_model_name  as "rp_model_name"   
+        ,rpi.rp_price as "rp_price"   
+        ,rpi.rp_count  as "rp_count"  
+        ,rpi.rp_no as"rp_no" 
+        ,crp.RENTAL_PRODUCT_CODE as"RENTAL_PRODUCT_CODE"
+        ,rpid.rp_content as "rp_content"
+        from CODE_RENTAL_PRODUCT crp,RENTAL_PRODUCT rp,RENTAL_PRODUCT_INFO rpi ,RENTAL_PRODUCT_INFO_DETAIL rpid 
+        where 
+        rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE 
+        and
+        rpi.rp_no=rp.rp_no
+        and
+        rpid.rp_no(+)=rpi.rp_no
+        and
+        rpi.rp_no=#{rp_no} 
+       
+	</select>
+	
+	<update id="updaterentalProduct" parameterType="com.naver.erp.RentalProductDTO">
+		update RENTAL_PRODUCT_INFO set
+		RP_MODEL_NAME='${rp_model_name}'
+		,RP_PRICE=${rp_price}
+		,RP_COUNT=${rp_count}
+		where
+		rp_no=#{rp_no}
+	</update> 
+	
+	<update id="updaterentalContent" parameterType="com.naver.erp.RentalProductDTO">
+		update RENTAL_PRODUCT_INFO_DETAIL set
+		RP_CONTENT=#{rp_content}
+		where
+		rp_no=#{rp_no}
+	</update> 
+	
+	<update id="updateCodetRentalProduct" parameterType="com.naver.erp.RentalProductDTO">
+	
+		update rental_product set
+		rental_product_code=${rental_product_code}
+		where
+		rp_no=#{rp_no}
+	</update> 
+	
+	
+	<select id="getrentalProductList"  resultType="java.util.HashMap">
+		
+		select
+		substr(rpi.RP_MODEL_NAME,0,7) as"rp_model_name"
+		,rpi.rp_no as"rp_no"
+		,rr.RT_COMNAME as"rt_comname"
+		,rr.rt_comaddr as"rt_comaddr"
+		,rpi.rp_price as"rp_price"
+		,rpi.rp_count as"rp_count"
+		,crp.rental_product as"rental_product"
+		,rp.rental_product_code as"rental_product_code"
+		from rENTAL_PRODUCT_INFO rpi,RENTAL_PRODUCT rp,RENTAL_REG rr,CODE_RENTAL_PRODUCT crp
+		where
+		1=1
+		and
+		rp.rp_no=rpi.rp_no
+		and
+		rr.rt_no=rpi.rt_no
+		and
+		crp.RENTAL_PRODUCT_CODE=rp.RENTAL_PRODUCT_CODE
+		 order by rp_price desc
+	</select>
+	
+	
+	<select id="getrentalProductList2" parameterType="java.util.List" resultType="java.util.HashMap">
+		
+		select
+		substr(rpi.RP_MODEL_NAME,0,7) as"rp_model_name"
+		,rpi.rp_no as"rp_no"
+		,rr.RT_COMNAME as"rt_comname"
+		,rr.rt_comaddr as"rt_comaddr"
+		,rpi.rp_price as"rp_price"
+		,rpi.rp_count as"rp_count"
+		,crp.rental_product as"rental_product"
+		,rp.rental_product_code as"rental_product_code"
+		from rENTAL_PRODUCT_INFO rpi,RENTAL_PRODUCT rp,RENTAL_REG rr,CODE_RENTAL_PRODUCT crp
+		where
+		1=1
+		and
+		rp.rp_no=rpi.rp_no
+		and
+		rr.rt_no=rpi.rt_no
+		and
+		crp.RENTAL_PRODUCT_CODE=rp.RENTAL_PRODUCT_CODE
+		<foreach collection="list" item="code" open="and(" separator="or" close=")">
+		crp.rental_product_code=#{code}
+		</foreach>
+		 order by rp_price desc
+	</select>
+	
+	
+	<select id="getrentalContent" parameterType="com.naver.erp.RentalProductDTO" resultType="com.naver.erp.RentalProductDTO">
+		     select
+        rpi.RP_MODEL_NAME as"rp_model_name"
+        ,rpi.rp_no as"rp_no"
+        ,rr.RT_COMNAME as"rt_comname"
+        ,rr.rt_comaddr as"rt_comaddr"
+        ,rpi.rp_price as"rp_price"
+        ,rpi.rp_count as"rp_count"  
+         ,(select rp_content from RENTAL_PRODUCT_INFO_DETAIL rpid where  rpid.rp_no=rpi.rp_no) as"rp_content"
+         ,nvl((select avg(rp_score) from  RENTAL_PRODUCT_REVIEW where rp_no=#{rp_no}),0) as "rp_score"
+         ,crp.RENTAL_PRODUCT as"rental_product"
+        from RENTAL_PRODUCT_INFO rpi,RENTAL_PRODUCT rp,RENTAL_REG rr,CODE_RENTAL_PRODUCT crp
+        where
+        1=1
+        and
+        rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE
+        and
+        rp.rp_no=rpi.rp_no
+        and
+        rr.rt_no=rpi.rt_no
+        and
+        rpi.rp_no=#{rp_no}
+	</select>
+	
+	<update id="updateSubscription" parameterType="com.naver.erp.RentalSubscriptionDTO">
+	update RENTAL_PRODUCT_INFO set RP_COUNT=RP_COUNT-1
+	where
+	rp_no=#{rp_no}
+	</update>
+	
+	<insert id="insertSubscription" parameterType="com.naver.erp.RentalSubscriptionDTO">
+		insert into rental_user_info(ru_NO,b_NO,rp_no) values(
+		(select nvl(max(ru_no),0)+1 from rental_user_info)
+		,#{b_no}
+		,#{rp_no}
+		)
+	</insert>
+	
+	<insert id="insertRentalTerm" parameterType="com.naver.erp.RentalSubscriptionDTO">
+		insert into rental_term values(
+		(select max(ru_no) from rental_user_info where b_no=#{b_no} and rp_no=#{rp_no})
+		,#{rental_term_code}
+		)
+	</insert> 
+	
+	<select id="getrentalSubList" parameterType="com.naver.erp.RentalProductSerachDTO" resultType="java.util.HashMap">
+		select
+      crp.rental_product as "rental_product"
+      ,br.b_id as "b_id"
+      ,br.b_phone as "b_phone"
+      ,br.b_name as "b_name"
+      ,to_char(rui.RENTAL_DATE,'yyyy-mm-dd') as "rental_date"  
+      ,crt.rental_term as "rental_term"  
+      ,to_char(rui.rental_start_date,'yyyy-mm-dd') as "rental_start_date"
+      ,rui.ru_no as "ru_no"
+      ,(select to_char(add_months(RENTAL_START_DATE,(select rtrim(rtrim(RENTAL_TERM,'월'),'개') 
+        FROM CODE_RENTAL_TERM crt,RENTAL_TERM rt 
+        where
+        rt.RENTAL_TERM_CODE=crt.RENTAL_TERM_CODE 
+        and
+        rpi.rt_no=rr.rt_no
+        and
+        rpi.rp_no=rp.rp_no
+        and
+        rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE
+        and
+        rui.ru_no=rt.ru_no
+        and
+        rui.b_no=br.b_no)),'yyyy-mm-dd') from RENTAL_USER_INFO rui where rui.rp_no=rpi.rp_no
+        and
+        rpi.rt_no=rr.rt_no
+        and
+        rpi.rp_no=rp.rp_no
+        and
+        rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE
+        and
+        rui.ru_no=rt.ru_no
+        and
+        rt.RENTAL_TERM_CODE=crt.RENTAL_TERM_CODE
+        and
+        rui.b_no=br.b_no) as "rental_end_date"
+        ,(select to_date((select to_char(add_months(RENTAL_START_DATE,(select rtrim(rtrim(RENTAL_TERM,'월'),'개') 
+        FROM CODE_RENTAL_TERM crt,RENTAL_TERM rt 
+        where
+        rt.RENTAL_TERM_CODE=crt.RENTAL_TERM_CODE 
+        and
+        rpi.rt_no=rr.rt_no
+        and
+        rpi.rp_no=rp.rp_no
+        and
+        rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE
+        and
+        rui.ru_no=rt.ru_no
+        and
+        rui.b_no=br.b_no)),'yyyy-mm-dd') from RENTAL_USER_INFO rui where rui.rp_no=rpi.rp_no
+        and
+        rpi.rt_no=rr.rt_no
+        and
+        rpi.rp_no=rp.rp_no
+        and
+        rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE
+        and
+        rui.ru_no=rt.ru_no
+        and
+        rt.RENTAL_TERM_CODE=crt.RENTAL_TERM_CODE
+        and
+        rui.b_no=br.b_no),'yyyy-mm-dd')-sysdate from dual) as "date"
+        from
+        rental_reg rr,rental_product_info rpi,CODE_RENTAL_PRODUCT crp,RENTAL_PRODUCT rp,RENTAL_USER_INFO rui,CODE_RENTAL_TERM crt,RENTAL_TERM rt,buyer_reg br
+        where
+        rr.rt_no=rpi.rt_no
+        and
+        rpi.rp_no=rp.rp_no
+        and
+        crp.rental_product_code=rp.rental_product_code
+        and
+        rpi.rp_no=rui.rp_no
+        and
+        rui.ru_no=rt.ru_no
+        and
+        crt.RENTAL_TERM_CODE=rt.RENTAL_TERM_CODE   
+        and  
+        br.b_no=rui.b_no
+        and
+       rr.rt_no=#{rt_no}
+       
+      
+	</select>
+	
+	<select id="getrentalASList" parameterType="int" resultType="java.util.HashMap">
+		select 
+        br.b_name as "b_name"
+        ,rui.ru_no as"ru_no"
+        ,br.b_phone as "b_phone"
+        ,br.b_id as "b_id"
+        ,rpba.rt_board_subject as "rt_board_subject"
+        ,rpba.rt_board_content as "rt_board_content"
+        ,to_char(rpba.rt_board_reg_date,'yyyy-mm-dd') as "rt_board_reg_date"
+        ,rpba.rt_board_no as "rt_board_no"
+        ,rpi.rp_model_name as"rp_model_name"
+        ,crp.rental_product as"rental_product"
+        ,rpba.RT_BOARD_READCOUNT as "rt_board_readcount"
+        ,rui.ru_no
+        ,rpi.rp_no as "rp_no" 
+        from
+        buyer_reg br,RENTAL_PRODUCT_BOARD_AS rpba,RENTAL_PRODUCT_INFO rpi,CODE_RENTAL_PRODUCT crp,RENTAL_PRODUCT rp,RENTAL_USER_INFO rui,RENTAL_REG rr
+        where
+        br.b_no=rpba.b_no
+        and
+        rpba.ru_no=rui.ru_no
+        and
+        rui.rp_no=rpi.rp_no
+        and
+        crp.RENTAL_PRODUCT_CODE=rp.RENTAL_PRODUCT_CODE
+        and
+        rp.rp_no=rpi.rp_no
+        and
+        rpi.rt_no=rr.rt_no
+        and
+        rpi.rt_no=#{rt_no}
+	</select>
+	
+	<select id="getrentalASContent" parameterType="int" resultType="com.naver.erp.RentalASDTO">
+		select 
+        rt_board_subject as "rt_board_subject"
+         ,rt_board_no as "rt_board_no"
+        ,rt_board_content as "rt_board_content"
+        ,RT_BOARD_READCOUNT as "rt_board_readcount"
+        from
+        RENTAL_PRODUCT_BOARD_AS
+        where
+       ru_no=#{ru_no}
+	</select>
+	
+	<update id="rentalASCompanyProc" parameterType="com.naver.erp.RentalASDTO">
+		update RENTAL_PRODUCT_BOARD_AS set RT_BOARD_READCOUNT=1 where rt_board_no=#{rt_board_no}
+	</update> 
+	
+	<select id="selectSubJubsu" parameterType="com.naver.erp.RentalSubscriptionDTO" resultType="int">
+	 select count(RENTAL_START_DATE) from RENTAL_USER_INFO where ru_no=#{ru_no}
+	</select>
+	
+	<update id="updateSubJubsu" parameterType="com.naver.erp.RentalSubscriptionDTO">
+		update RENTAL_USER_INFO set RENTAL_START_DATE=to_date(to_char(sysdate,'yyyy-mm-dd')) where ru_no=#{ru_no}
+	</update> 
+	
+	<insert id="getBuyerReviewcnt" parameterType="com.naver.erp.RentalReviewDTO">
+		insert into RENTAL_PRODUCT_REVIEW values(
+		(select nvl(max(rpr_no),0)+1 from RENTAL_PRODUCT_REVIEW)
+		,#{b_no}
+		,#{ru_no}
+		,#{rp_no}
+		,#{rp_score}
+		)
+	</insert> 
+	
+	<update id="getBuyerReReviewcnt" parameterType="com.naver.erp.RentalReviewDTO">
+		update  RENTAL_PRODUCT_REVIEW set 
+		b_no=#{b_no}
+		,rp_no=#{rp_no}
+		,rp_score=#{rp_score}
+		where
+		b_no=#{b_no}
+		and
+		rp_no=#{rp_no}
+		and
+		ru_no=#{ru_no}
+		
+	</update> 
+	
+	<select id="getBuyerRentalSubList" parameterType="int" resultType="java.util.HashMap">
+		select
+		rui.ru_no as"ru_no"
+		,rui.b_no as"b_no"
+		,to_char(rui.rental_date,'yyyy-mm-dd') as"rental_date"
+        ,to_char(rui.rental_start_date,'yyyy-mm-dd') as"rental_start_date"
+        ,rr.rt_no as"rt_no"
+        ,rr.rt_comname as"rt_comname"
+        ,rr.rt_comaddr as"rt_comaddr"
+        ,rr.rt_comaddr_detail as"rt_comaddr_detail"
+        ,rr.rt_phone as "rt_phone"
+        ,rpi.rp_model_name as"rp_model_name"
+        ,rpi.rp_price as"rp_price"
+        ,crp.rental_product as"rental_product"
+        ,crt.rental_term as"rental_term"
+        ,rui.rp_no as"rp_no"
+        ,nvl(rpr.rp_score,0) as"rp_score"
+        ,nvl(rpr.rpr_no,0) as"rpr_no"
+        ,(select to_char(add_months(RENTAL_START_DATE,(select rtrim(rtrim(RENTAL_TERM,'월'),'개') 
+        FROM CODE_RENTAL_TERM crt,RENTAL_TERM rt 
+        where
+        rt.RENTAL_TERM_CODE=crt.RENTAL_TERM_CODE 
+        and
+        rpi.rt_no=rr.rt_no
+        and
+        rpi.rp_no=rp.rp_no
+        and
+        rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE
+        and
+        rui.ru_no=rt.ru_no
+        and
+        rui.b_no=#{b_no})),'yyyy-mm-dd') from RENTAL_USER_INFO rui where rui.rp_no=rpi.rp_no
+        and
+        rpi.rt_no=rr.rt_no
+        and
+        rpi.rp_no=rp.rp_no
+        and
+        rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE
+        and
+        rui.ru_no=rt.ru_no
+        and
+        rt.RENTAL_TERM_CODE=crt.RENTAL_TERM_CODE
+        and
+        rui.b_no=#{b_no}) as "rental_end_date"
+        ,(select to_date((select to_char(add_months(RENTAL_START_DATE,(select rtrim(rtrim(RENTAL_TERM,'월'),'개') 
+        FROM CODE_RENTAL_TERM crt,RENTAL_TERM rt 
+        where
+        rt.RENTAL_TERM_CODE=crt.RENTAL_TERM_CODE 
+        and
+        rpi.rt_no=rr.rt_no
+        and
+        rpi.rp_no=rp.rp_no
+        and
+        rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE
+        and
+        rui.ru_no=rt.ru_no
+        and
+        rui.b_no=#{b_no})),'yyyy-mm-dd') from RENTAL_USER_INFO rui where rui.rp_no=rpi.rp_no
+        and
+        rpi.rt_no=rr.rt_no
+        and
+        rpi.rp_no=rp.rp_no
+        and
+        rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE
+        and
+        rui.ru_no=rt.ru_no
+        and
+        rt.RENTAL_TERM_CODE=crt.RENTAL_TERM_CODE
+        and
+        rui.b_no=#{b_no}),'yyyy-mm-dd')-sysdate from dual) as "date"
+        from
+        RENTAL_USER_INFO rui,RENTAL_REG rr,RENTAL_PRODUCT_INFO rpi,CODE_RENTAL_PRODUCT crp,RENTAL_PRODUCT rp,CODE_RENTAL_TERM crt,RENTAL_TERM rt,RENTAL_PRODUCT_REVIEW rpr
+        where
+        rpr.b_no(+)=rui.b_no
+        and
+        rpr.rp_no(+)=rui.rp_no
+        and
+        rpr.ru_no(+)=rui.ru_no
+        and
+        rui.rp_no=rpi.rp_no
+        and
+        rpi.rt_no=rr.rt_no
+        and
+        rpi.rp_no=rp.rp_no
+        and
+        rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE
+        and
+        rui.ru_no=rt.ru_no
+        and
+        rt.RENTAL_TERM_CODE=crt.RENTAL_TERM_CODE
+        and
+        rui.b_no=#{b_no}
+	</select>
+	
+	<select id="getBuyerrentalASList" parameterType="int" resultType="java.util.HashMap">
+		select
+		rui.ru_no as"ru_no"
+		,to_char(rui.rental_date,'yyyy-mm-dd') as"rental_date"
+		,to_char(rui.rental_start_date,'yyyy-mm-dd') as"rental_start_date"
+		,rr.rt_comname as"rt_comname"
+		,rr.rt_comaddr as"rt_comaddr"
+		,rr.rt_comaddr_detail as"rt_comaddr_detail"
+		,rr.rt_phone as "rt_phone"
+		,rpi.rp_model_name as"rp_model_name"
+		,rpi.rp_price as"rp_price"
+		,crp.rental_product as"rental_product"
+		,crt.rental_term as"rental_term"
+		,rpba.rt_board_subject as"rt_board_subject"
+		,rpba.rt_board_content as"rt_board_content"
+		,rpba.rt_board_readcount as"rt_board_readcount"
+		,to_char(rpba.rt_board_reg_date,'yyyy-mm-dd') as"rt_board_reg_date"
+		from
+		RENTAL_USER_INFO rui,RENTAL_REG rr,RENTAL_PRODUCT_INFO rpi,CODE_RENTAL_PRODUCT crp,RENTAL_PRODUCT rp,CODE_RENTAL_TERM crt,RENTAL_TERM rt,RENTAL_PRODUCT_BOARD_AS rpba
+		where
+		rui.rp_no=rpi.rp_no
+		and
+		rpi.rt_no=rr.rt_no
+		and
+		rpi.rp_no=rp.rp_no
+		and
+		rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE
+		and
+		rui.ru_no=rt.ru_no
+		and
+		rt.RENTAL_TERM_CODE=crt.RENTAL_TERM_CODE
+		and
+		rpba.ru_no=rui.ru_no
+		and
+		rpba.b_no=#{b_no}
+	</select>
+	
+	<select id="selectAS" parameterType="com.naver.erp.RentalASDTO" resultType="int">
+		select count(*) from RENTAL_PRODUCT_BOARD_AS where ru_no=#{ru_no}
+	</select> 
+	
+	<insert id="getBuyerAScnt" parameterType="com.naver.erp.RentalASDTO">
+		insert into RENTAL_PRODUCT_BOARD_AS(RT_BOARD_NO,b_no,RT_BOARD_SUBJECT,RT_BOARD_CONTENT,RT_BOARD_READCOUNT,ru_no) values(
+		(select nvl(max(rt_board_no),0)+1 from RENTAL_PRODUCT_BOARD_AS)
+		,${b_no}
+		,#{rt_board_subject}
+		,#{rt_board_content}
+		,0
+		,${ru_no}
+		)
+	</insert> 
+	
+	
+	<!-- <select id="getwatercnt" parameterType="com.naver.erp.RentalChartsDTO" resultType="int">
+		select count(*) from rental_reg rr,rental_product_info rpi,CODE_RENTAL_PRODUCT crp,RENTAL_PRODUCT rp,RENTAL_USER_INFO rui where rr.rt_no=rpi.rt_no 
+		and rpi.rp_no=rp.rp_no and crp.rental_product_code=rp.rental_product_code and rpi.rp_no=rui.rp_no and crp.rental_product_code=2 
+        and rr.rt_no=#{rt_no} and to_char(rui.rental_date,'yyyy')='${year}'
+	</select> 
+	<select id="getgascnt" parameterType="com.naver.erp.RentalChartsDTO" resultType="int">
+		select count(*) from rental_reg rr,rental_product_info rpi,CODE_RENTAL_PRODUCT crp,RENTAL_PRODUCT rp,RENTAL_USER_INFO rui where rr.rt_no=rpi.rt_no 
+		and rpi.rp_no=rp.rp_no and crp.rental_product_code=rp.rental_product_code and rpi.rp_no=rui.rp_no and crp.rental_product_code=3  
+        and rr.rt_no=#{rt_no} and to_char(rui.rental_date,'yyyy')='${year}'
+	</select> 
+	<select id="gettvcnt" parameterType="com.naver.erp.RentalChartsDTO" resultType="int">
+	select count(*) from rental_reg rr,rental_product_info rpi,CODE_RENTAL_PRODUCT crp,RENTAL_PRODUCT rp,RENTAL_USER_INFO rui where rr.rt_no=rpi.rt_no 
+		and rpi.rp_no=rp.rp_no and crp.rental_product_code=rp.rental_product_code and rpi.rp_no=rui.rp_no and crp.rental_product_code=4 
+        and rr.rt_no=#{rt_no} and to_char(rui.rental_date,'yyyy')='${year}'
+	</select> 
+	<select id="getmicrocnt" parameterType="com.naver.erp.RentalChartsDTO" resultType="int">
+		select count(*) from rental_reg rr,rental_product_info rpi,CODE_RENTAL_PRODUCT crp,RENTAL_PRODUCT rp,RENTAL_USER_INFO rui where rr.rt_no=rpi.rt_no 
+		and rpi.rp_no=rp.rp_no and crp.rental_product_code=rp.rental_product_code and rpi.rp_no=rui.rp_no and crp.rental_product_code=5  
+        and rr.rt_no=#{rt_no} and to_char(rui.rental_date,'yyyy')='${year}'
+	</select> 
+	<select id="getwashercnt" parameterType="com.naver.erp.RentalChartsDTO" resultType="int">
+	select count(*) from rental_reg rr,rental_product_info rpi,CODE_RENTAL_PRODUCT crp,RENTAL_PRODUCT rp,RENTAL_USER_INFO rui where rr.rt_no=rpi.rt_no 
+		and rpi.rp_no=rp.rp_no and crp.rental_product_code=rp.rental_product_code and rpi.rp_no=rui.rp_no and crp.rental_product_code=6 
+        and rr.rt_no=#{rt_no} and to_char(rui.rental_date,'yyyy')='${year}'
+	</select> 
+	<select id="getairconcnt" parameterType="com.naver.erp.RentalChartsDTO" resultType="int">
+		select count(*) from rental_reg rr,rental_product_info rpi,CODE_RENTAL_PRODUCT crp,RENTAL_PRODUCT rp,RENTAL_USER_INFO rui where rr.rt_no=rpi.rt_no 
+		and rpi.rp_no=rp.rp_no and crp.rental_product_code=rp.rental_product_code and rpi.rp_no=rui.rp_no and crp.rental_product_code=7  
+        and rr.rt_no=#{rt_no} and to_char(rui.rental_date,'yyyy')='${year}'
+	</select> 
+	<select id="getrefrigeratorcnt" parameterType="com.naver.erp.RentalChartsDTO" resultType="int">
+		select count(*) from rental_reg rr,rental_product_info rpi,CODE_RENTAL_PRODUCT crp,RENTAL_PRODUCT rp,RENTAL_USER_INFO rui where rr.rt_no=rpi.rt_no 
+		and rpi.rp_no=rp.rp_no and crp.rental_product_code=rp.rental_product_code and rpi.rp_no=rui.rp_no and crp.rental_product_code=8  
+        and rr.rt_no=#{rt_no} and to_char(rui.rental_date,'yyyy')='${year}'
+	</select> 
+	<select id="getcuchencnt" parameterType="com.naver.erp.RentalChartsDTO" resultType="int">
+		select count(*) from rental_reg rr,rental_product_info rpi,CODE_RENTAL_PRODUCT crp,RENTAL_PRODUCT rp,RENTAL_USER_INFO rui where rr.rt_no=rpi.rt_no 
+		and rpi.rp_no=rp.rp_no and crp.rental_product_code=rp.rental_product_code and rpi.rp_no=rui.rp_no and crp.rental_product_code=9  
+        and rr.rt_no=#{rt_no} and to_char(rui.rental_date,'yyyy')='${year}'
+	</select> 
+	<select id="getprintcnt" parameterType="com.naver.erp.RentalChartsDTO" resultType="int">
+		select count(*) from rental_reg rr,rental_product_info rpi,CODE_RENTAL_PRODUCT crp,RENTAL_PRODUCT rp,RENTAL_USER_INFO rui where rr.rt_no=rpi.rt_no 
+		and rpi.rp_no=rp.rp_no and crp.rental_product_code=rp.rental_product_code and rpi.rp_no=rui.rp_no and crp.rental_product_code=10  
+        and rr.rt_no=#{rt_no} and to_char(rui.rental_date,'yyyy')='${year}'
+	</select> 
+	<select id="getbedcnt" parameterType="com.naver.erp.RentalChartsDTO" resultType="int">
+		select count(*) from rental_reg rr,rental_product_info rpi,CODE_RENTAL_PRODUCT crp,RENTAL_PRODUCT rp,RENTAL_USER_INFO rui where rr.rt_no=rpi.rt_no 
+		and rpi.rp_no=rp.rp_no and crp.rental_product_code=rp.rental_product_code and rpi.rp_no=rui.rp_no and crp.rental_product_code=11  
+        and rr.rt_no=#{rt_no} and to_char(rui.rental_date,'yyyy')='${year}'
+	</select> 
+	<select id="getvidecnt" parameterType="com.naver.erp.RentalChartsDTO" resultType="int">
+		select count(*) from rental_reg rr,rental_product_info rpi,CODE_RENTAL_PRODUCT crp,RENTAL_PRODUCT rp,RENTAL_USER_INFO rui where rr.rt_no=rpi.rt_no 
+		and rpi.rp_no=rp.rp_no and crp.rental_product_code=rp.rental_product_code and rpi.rp_no=rui.rp_no and crp.rental_product_code=12  
+        and rr.rt_no=#{rt_no} and to_char(rui.rental_date,'yyyy')='${year}'
+	</select> 
+	<select id="getstylercnt" parameterType="com.naver.erp.RentalChartsDTO" resultType="int">
+		select count(*) from rental_reg rr,rental_product_info rpi,CODE_RENTAL_PRODUCT crp,RENTAL_PRODUCT rp,RENTAL_USER_INFO rui where rr.rt_no=rpi.rt_no 
+		and rpi.rp_no=rp.rp_no and crp.rental_product_code=rp.rental_product_code and rpi.rp_no=rui.rp_no and crp.rental_product_code=13  
+        and rr.rt_no=#{rt_no} and to_char(rui.rental_date,'yyyy')='${year}'
+	</select>
+	 -->
+	
+	<select id="getaircnt" parameterType="com.naver.erp.RentalChartsDTO" resultType="java.util.HashMap">
+	<foreach collection="rental_product" item="rental_product"  separator="union all" >
+		select count(*) as "rental_product" from rental_reg rr,rental_product_info rpi,CODE_RENTAL_PRODUCT crp,RENTAL_PRODUCT rp,RENTAL_USER_INFO rui where rr.rt_no=rpi.rt_no 
+		and rpi.rp_no=rp.rp_no and crp.rental_product_code=rp.rental_product_code and rpi.rp_no=rui.rp_no and crp.rental_product_code=#{rental_product.rental_product_code}  
+        and rr.rt_no=#{rt_no} and to_char(rui.rental_date,'yyyy')='${year}'
+        
+	</foreach>
+	</select>
+	
+	
+	<select id="getProduct" resultType="java.util.HashMap">
+	select RENTAL_PRODUCT_CODE as "rental_product_code" , rental_product as"rental_product" from CODE_RENTAL_PRODUCT order by 1
+	</select> 
+	
+	
+	<select id="getproductList" parameterType="com.naver.erp.RentalChartsDTO" resultType="java.util.HashMap">
+	<foreach collection="rental_product" item="rental_product"  separator="union all" >
+	 (select (select count(*)from RENTAL_USER_INFO rui,RENTAL_PRODUCT_INFO rpi,RENTAL_REG rr,CODE_RENTAL_PRODUCT crp,RENTAL_PRODUCT rp where rui.rp_no=rpi.rp_no and rr.rt_no=rpi.rt_no and 
+         rpi.rt_no=#{rt_no}
+         and rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE and rp.RENTAL_PRODUCT_CODE=#{rental_product.rental_product_code} and rp.rp_no=rpi.rp_no and
+        to_char(rui.rental_date,'yyyy-mm')='${year}-01')||'' as "jan"        
+       ,(select count(*)from RENTAL_USER_INFO rui,RENTAL_PRODUCT_INFO rpi,RENTAL_REG rr,CODE_RENTAL_PRODUCT crp,RENTAL_PRODUCT rp where rui.rp_no=rpi.rp_no and rr.rt_no=rpi.rt_no and    
+       rpi.rt_no=#{rt_no}
+       and rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE and rp.RENTAL_PRODUCT_CODE=#{rental_product.rental_product_code} and rp.rp_no=rpi.rp_no and
+        to_char(rui.rental_date,'yyyy-mm')='${year}-02')||'' as "feb"         
+       ,(select count(*)from RENTAL_USER_INFO rui,RENTAL_PRODUCT_INFO rpi,RENTAL_REG rr,CODE_RENTAL_PRODUCT crp,RENTAL_PRODUCT rp where rui.rp_no=rpi.rp_no and rr.rt_no=rpi.rt_no and 
+         rpi.rt_no=#{rt_no}
+         and rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE and rp.RENTAL_PRODUCT_CODE=#{rental_product.rental_product_code} and rp.rp_no=rpi.rp_no and
+         to_char(rui.rental_date,'yyyy-mm')='${year}-03')||'' as "mar" 
+        ,(select count(*)from RENTAL_USER_INFO rui,RENTAL_PRODUCT_INFO rpi,RENTAL_REG rr,CODE_RENTAL_PRODUCT crp,RENTAL_PRODUCT rp where rui.rp_no=rpi.rp_no and rr.rt_no=rpi.rt_no and    
+       rpi.rt_no=#{rt_no}
+       and rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE and rp.RENTAL_PRODUCT_CODE=#{rental_product.rental_product_code} and rp.rp_no=rpi.rp_no and
+        to_char(rui.rental_date,'yyyy-mm')='${year}-04')||'' as "apr" 
+         ,(select count(*)from RENTAL_USER_INFO rui,RENTAL_PRODUCT_INFO rpi,RENTAL_REG rr,CODE_RENTAL_PRODUCT crp,RENTAL_PRODUCT rp where rui.rp_no=rpi.rp_no and rr.rt_no=rpi.rt_no and    
+       rpi.rt_no=#{rt_no}
+       and rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE and rp.RENTAL_PRODUCT_CODE=#{rental_product.rental_product_code} and rp.rp_no=rpi.rp_no and
+        to_char(rui.rental_date,'yyyy-mm')='${year}-05')||'' as "may" 
+        ,(select count(*)from RENTAL_USER_INFO rui,RENTAL_PRODUCT_INFO rpi,RENTAL_REG rr,CODE_RENTAL_PRODUCT crp,RENTAL_PRODUCT rp where rui.rp_no=rpi.rp_no and rr.rt_no=rpi.rt_no and    
+       rpi.rt_no=#{rt_no}
+       and rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE and rp.RENTAL_PRODUCT_CODE=#{rental_product.rental_product_code} and rp.rp_no=rpi.rp_no and
+        to_char(rui.rental_date,'yyyy-mm')='${year}-06')||'' as "jun" 
+        ,(select count(*)from RENTAL_USER_INFO rui,RENTAL_PRODUCT_INFO rpi,RENTAL_REG rr,CODE_RENTAL_PRODUCT crp,RENTAL_PRODUCT rp where rui.rp_no=rpi.rp_no and rr.rt_no=rpi.rt_no and    
+       rpi.rt_no=#{rt_no}
+       and rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE and rp.RENTAL_PRODUCT_CODE=#{rental_product.rental_product_code} and rp.rp_no=rpi.rp_no and
+        to_char(rui.rental_date,'yyyy-mm')='${year}-07')||'' as "jul" 
+        ,(select count(*)from RENTAL_USER_INFO rui,RENTAL_PRODUCT_INFO rpi,RENTAL_REG rr,CODE_RENTAL_PRODUCT crp,RENTAL_PRODUCT rp where rui.rp_no=rpi.rp_no and rr.rt_no=rpi.rt_no and    
+       rpi.rt_no=#{rt_no}
+       and rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE and rp.RENTAL_PRODUCT_CODE=#{rental_product.rental_product_code} and rp.rp_no=rpi.rp_no and
+        to_char(rui.rental_date,'yyyy-mm')='${year}-08')||'' as "aug" 
+        ,(select count(*)from RENTAL_USER_INFO rui,RENTAL_PRODUCT_INFO rpi,RENTAL_REG rr,CODE_RENTAL_PRODUCT crp,RENTAL_PRODUCT rp where rui.rp_no=rpi.rp_no and rr.rt_no=rpi.rt_no and    
+       rpi.rt_no=#{rt_no}
+       and rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE and rp.RENTAL_PRODUCT_CODE=#{rental_product.rental_product_code} and rp.rp_no=rpi.rp_no and
+        to_char(rui.rental_date,'yyyy-mm')='${year}-09')||'' as "sep"  
+        ,(select count(*)from RENTAL_USER_INFO rui,RENTAL_PRODUCT_INFO rpi,RENTAL_REG rr,CODE_RENTAL_PRODUCT crp,RENTAL_PRODUCT rp where rui.rp_no=rpi.rp_no and rr.rt_no=rpi.rt_no and    
+       rpi.rt_no=#{rt_no}
+       and rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE and rp.RENTAL_PRODUCT_CODE=#{rental_product.rental_product_code} and rp.rp_no=rpi.rp_no and
+        to_char(rui.rental_date,'yyyy-mm')='${year}-10')||'' as "oct" 
+       ,(select count(*)from RENTAL_USER_INFO rui,RENTAL_PRODUCT_INFO rpi,RENTAL_REG rr,CODE_RENTAL_PRODUCT crp,RENTAL_PRODUCT rp where rui.rp_no=rpi.rp_no and rr.rt_no=rpi.rt_no and    
+       rpi.rt_no=#{rt_no}
+       and rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE and rp.RENTAL_PRODUCT_CODE=#{rental_product.rental_product_code} and rp.rp_no=rpi.rp_no and
+        to_char(rui.rental_date,'yyyy-mm')='${year}-11')||'' as "nov" 
+        ,(select count(*)from RENTAL_USER_INFO rui,RENTAL_PRODUCT_INFO rpi,RENTAL_REG rr,CODE_RENTAL_PRODUCT crp,RENTAL_PRODUCT rp where rui.rp_no=rpi.rp_no and rr.rt_no=rpi.rt_no and    
+       rpi.rt_no=#{rt_no}
+       and rp.RENTAL_PRODUCT_CODE=crp.RENTAL_PRODUCT_CODE and rp.RENTAL_PRODUCT_CODE=#{rental_product.rental_product_code} and rp.rp_no=rpi.rp_no and
+        to_char(rui.rental_date,'yyyy-mm')='${year}-12')||'' as "dec" from dual)
+	</foreach>
+	
+	</select>  
+	
+	<select id="rentalId" parameterType="com.naver.erp.RentalCompanyDTO" resultType="String">
+		select rt_id from rental_reg where rt_comname=#{rt_comname} and rt_bnum=#{rt_bnum} and rt_phone=#{rt_phone}
+	</select> 
+	
+	<select id="rentalPwd" parameterType="com.naver.erp.RentalCompanyDTO" resultType="String">
+		select rt_pwd from rental_reg where rt_id=#{rt_id} and  rt_comname=#{rt_comname} and rt_bnum=#{rt_bnum} and rt_phone=#{rt_phone}
+	</select> 
+	
+	
+	
+	
+</mapper>	
+	

@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.naver.erp.BuyerDAO">   
+		<!--  LoginDAOImple 클래스와 연동 -->
+		<!-- parameterType : input type, resultType : return type 
+		id : SQL구문의 고유 아이디값 설정, DAO클래스의 메소드 이름과 동일	-->
+		 
+		 
+		 
+		 
+		 
+		 
+		 
+	<!-- ===================================================================================== -->	 
+	<!-- b_id가 같은 BUYER_REG를 가져온다  -->
+	<!-- ===================================================================================== --> 
+	<select id='getBuyerIdDTO' parameterType="String" resultType="com.naver.erp.BuyerDTO"> 
+		select
+				*
+		from BUYER_REG	
+		where b_id = #{b_id}
+		
+	</select> 
+	
+	
+	
+	<!-- ===================================================================================== -->
+	<!-- BUYER_REG에서 b_no가 같을 때, 목록을 가져온다  -->
+	<!-- ===================================================================================== -->
+	<select id="getBuyerDTO" parameterType="int" resultType="com.naver.erp.BuyerDTO">
+		select
+			b_no		"b_no"
+			,b_id		"b_id"
+			,b_pwd		"b_pwd"
+			,b_name		"b_name"
+			,b_jumin	"b_jumin"
+			,b_phone	"b_phone"
+		from BUYER_REG
+		where b_no=#{b_no}
+	</select>
+	
+	
+	
+	<!-- ===================================================================================== -->
+	<!-- SELL_ROOM에서 sr_no가 같을 때, 목록을 가져온다  -->
+	<!-- ===================================================================================== -->
+	<!-- <select id="getRoomDTO" parameterType="int" resultType="com.naver.erp.RoomDTO">
+		select
+			sr_no		"sr_no"
+			,(select s_name from SELLER_REG where s_no = #{s_no})		"s_name"
+			,sr_mainaddr		"sr_mainaddr"
+			,sr_addrflow		"sr_addrflow"
+			,sr_roomsize	"sr_roomsize"
+			,sr_builddate		"sr_builddate"
+		from SELL_ROOM
+		where sr_no=#{sr_no}
+	</select> -->
+	
+
+
+
+	<!-- ===================================================================================== -->
+	<!-- BUYER_REG에서 b_no가 같을 때, 정보를 수정(업데이트)한다.  -->
+	<!-- ===================================================================================== -->
+ 	<update id="updateBuyer" parameterType="com.naver.erp.BuyerDTO">
+		update
+			BUYER_REG
+		set
+			b_pwd = #{b_pwd}
+			,b_name = #{b_name}
+			,b_phone = #{b_phone}
+		where b_no = #{b_no}
+	</update>  
+
+	
+	
+	<!-- ===================================================================================== -->
+	<!-- BUYER_REG에서 b_no가 같을 때의 목록 개수를 가져온다  -->
+	<!-- ===================================================================================== --> 
+	<select id="getBuyerCnt" parameterType="com.naver.erp.BuyerDTO" resultType="int">
+		select count(*) from BUYER_REG where b_no=#{b_no}
+	</select>
+	
+	
+	
+	<!-- ===================================================================================== -->
+	<!-- BUYER_REG에서 b_no와 b_pwd가 같을 때의 목록 개수를 가져온다  -->
+	<!-- ===================================================================================== --> 
+	<select id="getPwdCnt" parameterType="com.naver.erp.BuyerDTO" resultType="int">
+		select count(*) from BUYER_REG where b_no=#{b_no} and b_pwd=#{b_pwd}
+	</select>
+	
+	
+	
+	<!-- ===================================================================================== -->
+	<!-- BUYER_REG에서 b_no와 b_pwd가 같을 때, 목록을 삭제한다  -->
+	<!-- ===================================================================================== --> 
+	<delete id="deleteBuyer" parameterType="com.naver.erp.BuyerDTO">
+		delete from BUYER_REG where b_no=#{b_no} and b_pwd=#{b_pwd}
+	</delete>
+	
+	
+
+	
+	
+	<!-- ===================================================================================== -->
+	<!-- BUYER_LIKE_ROOM에서 b_no가 같을 때, 목록을 삭제한다  -->
+	<!-- ===================================================================================== --> 
+	<delete id="deleteLikeRoom" parameterType="com.naver.erp.BuyerDTO">
+		delete from BUYER_LIKE_ROOM where b_no=#{b_no}
+	</delete>
+	
+	
+	
+	
+	<!-- ===================================================================================== -->
+	<!-- sell_room, sellroom_image 테이블에서 일정 조건을 충족시킬 때, 목록을 가져온다  -->
+	<!-- ===================================================================================== -->
+	<select id="getLikeRoomList" parameterType="com.naver.erp.BuyerDTO" resultType="java.util.HashMap">            
+			
+	select 
+                    sr.sr_no||'' as "sr_no"   
+                    ,(select s_name from seller_reg where s_no = sr.s_no) as "s_name"
+                    ,sr.s_no||'' as "s_no"           
+                    ,(select sr_addr from sell_room_addr where sr_no =  sr.sr_no) as "sr_addr"
+                    ,sr.sr_roomsize as "sr_roomsize"
+                    ,(select max(image_name) from sellroom_image si, sell_room sr2 where sr2.sr_no=si.sr_no and sr2.sr_no=sr.sr_no) as "image_name"  
+                    ,(select roomtype from code_sell_room_type where roomtype_code in (select roomtype_code from type_sell_room where sr_no = sr.sr_no))  as "room_type"
+                    ,sr.sr_roomsize||'' as "room_size"    
+            from sell_room sr
+            where sr.sr_no in(select sr_no from buyer_like_room where b_no=${b_no})  
+                    
+                    
+                          
+	</select>
+	
+	<!-- ===================================================================================== -->
+	<!-- BUYER_REG에서 정보에 해당하는 아이디 확인  -->
+	<!-- ===================================================================================== -->
+	<select id="buyerIdCnt" parameterType="com.naver.erp.BuyerDTO" resultType="String">
+		select b_id from BUYER_REG
+		where
+			b_name=#{b_name} and b_jumin=#{b_jumin} and b_phone=#{b_phone}
+	</select>
+	<!-- ===================================================================================== -->
+	<!-- BUYER_REG에서 정보에 해당하는 비번 확인  -->
+	<!-- ===================================================================================== -->
+	<select id="buyerPwdGet" parameterType="com.naver.erp.BuyerDTO" resultType="String">
+		select b_pwd from BUYER_REG
+		where
+			b_id=#{b_id} and b_name=#{b_name} and b_jumin=#{b_jumin} and b_phone=#{b_phone}
+	</select>
+	
+	
+	
+	<!-- ===================================================================================== -->
+	<!-- 구매자 홈에 띄울 방 목록을 가져온다  -->
+	<!-- ===================================================================================== -->
+	<select id="getRoomList"  resultType="java.util.HashMap">  
+	          
+
+            select * from (select zzz.*, rownum RNUM from (
+
+                 select
+                    sr.sr_no||'' as "sr_no"
+                    ,sr.s_no||'' as "s_no"
+                    ,sr.sr_roomsize as "sr_roomsize"
+                    ,sra.sr_addr as "sr_addr"
+                    ,(select roomtype from type_sell_room tsr,code_sell_room_type csrt where csrt.roomtype_code=tsr.roomtype_code and tsr.sr_no=sr.sr_no) as "roomtype"
+                    ,(select max(image_name) from sellroom_image si,sell_room sr2 where sr2.sr_no=si.sr_no and sr2.sr_no=sr.sr_no) as "sellroom_image"  
+                    ,(select OPTION_TYPE from CODE_OPTION_TYPE cot,SELL_ROOM_OPTION_TYPE srot where cot.OPTION_TYPE_CODE=srot.OPTION_TYPE_CODE and srot.sr_no = sr.sr_no) as "option_type"
+                    
+                    
+                    from SELL_ROOM sr,sell_room_addr sra,SELL_ROOM_OWNER_CHECK sroc             
+                    
+                    where
+                    1=1
+                    and
+                    sra.sr_no=sr.sr_no 
+                    and
+                    sroc.sr_no=sr.sr_no
+                    and
+                    sroc.CHECK_CODE=3
+                    order by 
+                    (select count(*) from buyer_like_room lr where lr.sr_no = sr.sr_no)  desc
+                       
+      
+           )zzz)where 
+			<![CDATA[
+			RNUM<5
+			]]>
+
+	</select>
+	
+	<!-- ===================================================================================== -->
+	<!-- 구매자 홈에 띄울 방 목록을 가져온다  -->
+	<!-- ===================================================================================== -->
+	<select id="getRoomSecondList"  resultType="java.util.HashMap">  
+	          
+
+            select * from (select zzz.*, rownum RNUM from (
+
+                 select
+                    sr.sr_no||'' as "sr_no"
+                    ,sr.s_no||'' as "s_no"
+                    ,sr.sr_roomsize as "sr_roomsize"
+                    ,sra.sr_addr as "sr_addr"
+                    ,(select roomtype from type_sell_room tsr,code_sell_room_type csrt where csrt.roomtype_code=tsr.roomtype_code and tsr.sr_no=sr.sr_no) as "roomtype"
+                    ,(select max(image_name) from sellroom_image si,sell_room sr2 where sr2.sr_no=si.sr_no and sr2.sr_no=sr.sr_no) as "sellroom_image"  
+                    ,(select OPTION_TYPE from CODE_OPTION_TYPE cot,SELL_ROOM_OPTION_TYPE srot where cot.OPTION_TYPE_CODE=srot.OPTION_TYPE_CODE and srot.sr_no = sr.sr_no) as "option_type"
+                    
+                    
+                    from SELL_ROOM sr,sell_room_addr sra,SELL_ROOM_OWNER_CHECK sroc             
+                    
+                    where
+                    1=1
+                    and
+                    sra.sr_no=sr.sr_no 
+                    and
+                    sroc.sr_no=sr.sr_no
+                    and
+                    sroc.CHECK_CODE=3
+                    order by 
+                    (select count(*) from buyer_like_room lr where lr.sr_no = sr.sr_no)  desc
+                       
+      
+           )zzz)where  
+			<![CDATA[
+			RNUM>4 and RNUM<9
+			]]>
+
+	</select>
+	
+	<!-- ===================================================================================== -->
+	<!-- 구매자 홈에 띄울 방 목록을 가져온다  -->
+	<!-- ===================================================================================== -->
+	<select id="getRoomThirdList"  resultType="java.util.HashMap">  
+	          
+
+            select * from (select zzz.*, rownum RNUM from (
+
+                 select
+                    sr.sr_no||'' as "sr_no"
+                    ,sr.s_no||'' as "s_no"
+                    ,sr.sr_roomsize as "sr_roomsize"
+                    ,sra.sr_addr as "sr_addr"
+                    ,(select roomtype from type_sell_room tsr,code_sell_room_type csrt where csrt.roomtype_code=tsr.roomtype_code and tsr.sr_no=sr.sr_no) as "roomtype"
+                    ,(select max(image_name) from sellroom_image si,sell_room sr2 where sr2.sr_no=si.sr_no and sr2.sr_no=sr.sr_no) as "sellroom_image"  
+                    ,(select OPTION_TYPE from CODE_OPTION_TYPE cot,SELL_ROOM_OPTION_TYPE srot where cot.OPTION_TYPE_CODE=srot.OPTION_TYPE_CODE and srot.sr_no = sr.sr_no) as "option_type"
+                    
+                    
+                    from SELL_ROOM sr,sell_room_addr sra,SELL_ROOM_OWNER_CHECK sroc             
+                    
+                    where
+                    1=1
+                    and
+                    sra.sr_no=sr.sr_no 
+                    and
+                    sroc.sr_no=sr.sr_no
+                    and
+                    sroc.CHECK_CODE=3
+                    order by 
+                    (select count(*) from buyer_like_room lr where lr.sr_no = sr.sr_no)  desc
+                       
+      
+           )zzz)where 
+			<![CDATA[
+			RNUM>8 and RNUM<13
+			]]>
+
+	</select>
+
+	
+	<!-- ===================================================================================== -->
+	<!-- getrentalList 테이블에서 일정 조건을 충족시킬 때, 렌탈목록을 가져온다  -->
+	<!-- ===================================================================================== -->
+	<select id="getrentalList" resultType="java.util.HashMap">            
+	  select *
+                    from(
+                        select
+                          
+                            zzz.*
+                            ,rownum RNUM
+                            from(
+                            
+                                     select 
+                                         count(*)  				 as "ru_count" 
+                                        ,pi.rp_model_name  		 as "rp_model_name"
+                                        ,pi.rp_no                as "rp_no"             
+                                        ,rg.rt_comname 			 as "rt_comname" 
+                                        ,rg.rt_phone   			 as "rt_phone"    
+                                        ,crp.rental_product      as "rental_product_name"   
+                                        
+                                    from RENTAL_USER_INFO ui, rental_product_info pi , rental_reg rg , rental_product rp, code_rental_product crp
+                                    
+                                    where   ui.rp_no = pi.rp_no(+) 
+                                                and
+                                            pi.rt_no = rg.rt_no(+)
+                                                and   
+                                            pi.rp_no = rp.rp_no(+)
+                                                and
+                                            rp.rental_product_code = crp.rental_product_code
+                                            
+                                    group by pi.rp_no 
+                                            ,pi.rp_model_name 
+                                            ,rg.rt_comname 
+                                            ,rg.rt_phone   
+                                            ,crp.rental_product
+                                    
+                                     
+                                    order by 1 desc
+			            
+                            )zzz
+			        )
+		
+                        
+		where rnum&gt;=1 and rnum&lt;=5 
+		
+	</select>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+		
+</mapper>
+
+	

@@ -1,0 +1,1071 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+
+<mapper namespace="com.naver.erp.RealtorDAO">
+
+
+
+
+
+
+	<!-- ===================================================================================== -->	 
+	<!--  <sql id="roomWhere"> 맨 앞에 빼놓기  -->
+	<!-- ===================================================================================== --> 
+	<sql id="roomWhere">
+				
+				<if test="sr_addr != null">
+					and
+					
+						<if test="sr_addr.equals('')">
+							1=1
+						</if>									
+						<if test="sr_addr.equals('서울')">
+							sr_addr like '%${sr_addr}%'
+						</if>
+						<if test="sr_addr.equals('부산')">
+							sr_addr like '%${sr_addr}%'
+						</if>
+						<if test="sr_addr.equals('대구')">
+							sr_addr like '%${sr_addr}%'
+						</if>
+						<if test="sr_addr.equals('인천')">
+							sr_addr like '%${sr_addr}%'
+						</if>
+						<if test="sr_addr.equals('광주')">
+							sr_addr like '%${sr_addr}%'
+						</if>
+						<if test="sr_addr.equals('대전')">
+							sr_addr like '%${sr_addr}%'
+						</if>
+						<if test="sr_addr.equals('울산')">
+							sr_addr like '%${sr_addr}%'
+						</if>
+						<if test="sr_addr.equals('세종')">
+							sr_addr like '%${sr_addr}%'
+						</if>
+						<if test="sr_addr.equals('경기')">
+							sr_addr like '%${sr_addr}%'
+						</if>
+						<if test="sr_addr.equals('강원')">
+							sr_addr like '%${sr_addr}%'
+						</if>
+						<if test="sr_addr.equals('충북')">
+							sr_addr like '%${sr_addr}%'
+						</if>
+						<if test="sr_addr.equals('충남')">
+							sr_addr like '%${sr_addr}%'
+						</if>
+						<if test="sr_addr.equals('전북')">
+							sr_addr like '%${sr_addr}%'
+						</if>
+						<if test="sr_addr.equals('전남')">
+							sr_addr like '%${sr_addr}%'
+						</if>
+						<if test="sr_addr.equals('경북')">
+							sr_addr like '%${sr_addr}%'
+						</if>
+						<if test="sr_addr.equals('경남')">
+							sr_addr like '%${sr_addr}%'
+						</if>
+						<if test="sr_addr.equals('제주')">
+							sr_addr like '%${sr_addr}%'
+						</if>
+				</if>
+				
+				<if test="keyword!=null">
+				         and 
+				         (
+				            upper(g.s_name) like upper('%${keyword}%')
+				            or upper(r.sr_no) like upper('%${keyword}%')
+				            or upper(d.sr_room_floor) like upper('%${keyword}%')
+				            or upper(r.sr_roomsize) like upper('%${keyword}%')
+				            or upper(d.sr_addr) like upper('%${keyword}%')
+				            or upper(d.sr_detail_addr) like upper('%${keyword}%')
+				         )      
+				</if>	
+	</sql>
+	
+	
+	
+	
+	
+	
+	
+	
+	<!-- ===================================================================================== -->	 
+	<!--  부동산현황 게시판  -->
+	<!-- ===================================================================================== --> 
+	<!-- <select id='getRoomList' parameterType="com.naver.erp.realtorProductDTO" resultType="java.util.HashMap">
+	select * from (select zzz.*, rownum RNUM from (
+		select
+		    r.sr_no ||''      as "sr_no"
+		    ,d.sr_addr     as "sr_addr"
+		    ,g.s_name       as "s_name"
+		    ,d.sr_room_floor||''    as "sr_room_floor"
+		    ,r.sr_roomsize ||''     as "sr_roomsize"
+		    ,d.sr_detail_addr      as "sr_detail_addr"
+		    ,to_char(a.as_date,'YYYY-MM-DD')				as "as_date"  
+		    ,c.check_code			as "check_code"
+
+		        
+		from REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+		where a.r_no=${r_no}
+		    and a.sr_no = r.sr_no
+		    and r.sr_no = d.sr_no
+		    and g.s_no = r.s_no
+		    and c.sr_no = r.sr_no
+		    and c.check_code between 2 and 5
+		<include refid = "roomWhere"/>
+		order by check_code asc, as_date asc
+	)zzz)where
+			<![CDATA[
+			RNUM>=${selectPageNo*rowCntPerPage-rowCntPerPage+1}
+			and RNUM<=${selectPageNo*rowCntPerPage}
+			]]>
+	</select> -->
+	<select id='getRoomList' parameterType="com.naver.erp.RealtorProductDTO" resultType="java.util.HashMap">
+		 select * from (select rownum RNUM, zzz.* from (
+		select  
+                sr.sr_no                    "sr_no"
+                , srg.s_name               "s_name"
+                , srad.sr_room_floor        "sr_room_floor"
+                , sr.sr_roomsize            "sr_roomsize"
+                , srad.sr_addr              "sr_addr"
+                , srad.sr_detail_addr       "sr_detail_addr"
+                , to_CHAR(sr.sr_date,'YYYY-MM-DD')                  "sr_date"
+                , sroc.check_code           "check_code" 
+        from 
+                REALTOR_SELLER_DATA_ASSIGN rsda, sell_room sr, sell_room_addr srad, seller_reg srg, sell_room_owner_check sroc, realtor_reg rtrg
+		
+        where  rtrg.r_no = #{r_no} 
+		    and  rtrg.r_no = rsda.r_no
+            and  srg.s_no = sr.s_no 
+		    and  rsda.sr_no = sr.sr_no
+		    and  sr.sr_no = srad.sr_no
+		    and  sr.sr_no = sroc.sr_no
+            and  sroc.check_code between 2 and 5
+
+		order by check_code asc, as_date asc
+	)zzz)
+	
+	</select>
+	
+	
+	
+	
+	
+	<!-- ===================================================================================== -->	 
+	<!--  주소 리스트  -->
+	<!-- ===================================================================================== --> 
+	<select id='getAddrList' parameterType="com.naver.erp.SellroomSearchDTO" resultType="java.util.HashMap">
+	
+	select (select count(*)FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no and  
+        DECODE(substr(d.sr_addr,4,2), '중구', 1, 2)in
+        (select DECODE(substr(d.sr_addr,4,2), '중구', 1, 0) FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no ) )as "Junggu" 
+            
+           
+        ,(select count(*)FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no and  
+        DECODE(substr(d.sr_addr,4,2), '동작',2, 1)in
+        (select DECODE(substr(d.sr_addr,4,2), '동작', 2, 0) FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no ) )as "Dongjakgu"
+             
+        
+        ,(select count(*)FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no and  
+        DECODE(substr(d.sr_addr,4,2), '영등', 3, 1)in
+        (select DECODE(substr(d.sr_addr,4,2), '영등', 3, 0) FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no ) )as "Yeongdeungpogu"  
+                              
+        
+        ,(select count(*)FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no and  
+        DECODE(substr(d.sr_addr,4,2), '송파', 4, 1)in
+        (select DECODE(substr(d.sr_addr,4,2), '송파', 4, 0) FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no ) )as "Songpagu"   
+                             
+        
+        ,(select count(*)FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no and  
+        DECODE(substr(d.sr_addr,4,2), '강남', 5, 1)in
+        (select DECODE(substr(d.sr_addr,4,2), '강남', 5, 0) FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no ) )as "Gangnamgu"  
+                        
+        
+        ,(select count(*)FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no and  
+        DECODE(substr(d.sr_addr,4,2), '강동', 6, 1)in
+        (select DECODE(substr(d.sr_addr,4,2), '강동', 6, 0) FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no ) )as "Gangdonggu"  
+        
+        
+        ,(select count(*)FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no and  
+        DECODE(substr(d.sr_addr,4,2), '서초', 7, 1)in
+        (select DECODE(substr(d.sr_addr,4,2), '서초', 7, 0) FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no ) )as "Seochogu"  
+           
+        
+        ,(select count(*)FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no and  
+        DECODE(substr(d.sr_addr,4,2), '관악', 8, 1)in
+        (select DECODE(substr(d.sr_addr,4,2), '관악', 8, 0) FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no ) )as "Gwanakgu"  
+                  
+        
+        ,(select count(*)FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no and  
+        DECODE(substr(d.sr_addr,4,2), '금천', 9, 1)in
+        (select DECODE(substr(d.sr_addr,4,2), '금천', 9, 0) FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no ) )as "Geumcheongu"  
+                         
+        
+        ,(select count(*)FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no and  
+        DECODE(substr(d.sr_addr,4,2), '구로', 10, 1)in
+        (select DECODE(substr(d.sr_addr,4,2), '구로', 10, 0) FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no ) )as "Gurogu" 
+        
+        
+        ,(select count(*)FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no and  
+        DECODE(substr(d.sr_addr,4,2), '강서', 11, 1)in
+        (select DECODE(substr(d.sr_addr,4,2), '강서', 11, 0) FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no ) )as "Gangseogu" 
+        
+        
+        ,(select count(*)FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no and  
+        DECODE(substr(d.sr_addr,4,2), '양천', 12, 1)in
+        (select DECODE(substr(d.sr_addr,4,2), '양천', 12, 0) FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no ) )as "Yangcheongu" 
+        
+        
+        ,(select count(*)FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no and  
+        DECODE(substr(d.sr_addr,4,2), '마포', 13, 1)in
+        (select DECODE(substr(d.sr_addr,4,2), '마포', 13, 0) FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no ) )as "Mapogu" 
+        
+        
+        ,(select count(*)FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no and  
+        DECODE(substr(d.sr_addr,4,2), '서대', 14, 1)in
+        (select DECODE(substr(d.sr_addr,4,2), '서대', 14, 0) FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no ) )as "Seodaemungu"
+        
+        
+        ,(select count(*)FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no and  
+        DECODE(substr(d.sr_addr,4,2), '은평', 15, 1)in
+        (select DECODE(substr(d.sr_addr,4,2), '은평', 15, 0) FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no ) )as "Eunpyeonggu"
+        
+        
+        ,(select count(*)FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no and  
+        DECODE(substr(d.sr_addr,4,2), '노원', 16, 1)in
+        (select DECODE(substr(d.sr_addr,4,2), '노원', 16, 0) FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no ) )as "Nowongu" 
+        
+        
+        ,(select count(*)FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no and  
+        DECODE(substr(d.sr_addr,4,2), '도봉', 17, 1)in
+        (select DECODE(substr(d.sr_addr,4,2), '도봉', 17, 0) FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no ) )as "Dobonggu"  
+        
+        
+        ,(select count(*)FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no and  
+        DECODE(substr(d.sr_addr,4,2), '강북', 18, 1)in
+        (select DECODE(substr(d.sr_addr,4,2), '강북', 18, 0) FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no ) )as "Gangbukgu"  
+        
+        
+        ,(select count(*)FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no and  
+        DECODE(substr(d.sr_addr,4,2), '성북', 19, 1)in
+        (select DECODE(substr(d.sr_addr,4,2), '성북', 19, 0) FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no ) )as "Seongbukgu"  
+        
+        
+        ,(select count(*)FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no and  
+        DECODE(substr(d.sr_addr,4,2), '중랑', 20, 1)in
+        (select DECODE(substr(d.sr_addr,4,2), '중랑', 20, 0) FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no ) )as "Jungnanggu"  
+        
+        
+        ,(select count(*)FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no and  
+        DECODE(substr(d.sr_addr,4,2), '동대', 21, 1)in
+        (select DECODE(substr(d.sr_addr,4,2), '동대', 21, 0) FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no ) )as "Dongdaemungu" 
+        
+        
+        ,(select count(*)FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no and  
+        DECODE(substr(d.sr_addr,4,2), '광진', 22, 1)in
+        (select DECODE(substr(d.sr_addr,4,2), '광진', 22, 0) FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no ) )as "Gwangjingu" 
+        
+        
+        ,(select count(*)FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no and  
+        DECODE(substr(d.sr_addr,4,2), '성동', 23, 1)in
+        (select DECODE(substr(d.sr_addr,4,2), '성동', 23, 0) FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no ) )as "Seongdonggu" 
+        
+        
+        ,(select count(*)FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no and  
+        DECODE(substr(d.sr_addr,4,2), '용산', 24, 1)in
+        (select DECODE(substr(d.sr_addr,4,2), '용산', 24, 0) FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no ) )as "Yongsangu" 
+        
+        
+        ,(select count(*)FROM REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g, sell_room_owner_check c
+        WHERE  
+        a.r_no=${r_no} and a.sr_no = r.sr_no and r.sr_no = d.sr_no and g.s_no = r.s_no and c.sr_no = r.sr_no and  
+        DECODE(substr(d.sr_addr,4,2), '종로', 25, 1)=25 )as "Jongnogu"   from dual
+        
+                   
+                   
+	</select>
+	<!-- ===================================================================================== -->	 
+	<!--  부동산현황 게시판 개수  -->
+	<!-- ===================================================================================== --> 
+	<select id='getRoomListAllCnt' parameterType="com.naver.erp.SellroomSearchDTO" resultType="int">
+      select
+              count(a.sr_no)
+      from REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g
+    
+      where a.r_no=${r_no}
+		    and a.sr_no = r.sr_no
+		    and r.sr_no = d.sr_no
+		    and g.s_no = r.s_no
+		    
+      <include refid = "roomWhere"/>
+	</select>
+	
+	
+
+	
+	
+	<!-- ===================================================================================== -->	 
+	<!--   아이디중복 체크  -->
+	<!-- ===================================================================================== --> 
+	<select id='getIdCnt' parameterType="com.naver.erp.RealtorDTO" resultType="int"> 
+		select count(*) from REALTOR_REG where r_id=#{r_id}
+	</select>
+	
+
+
+	<!-- ===================================================================================== -->	 
+	<!--  중개사무소명 중복 체크  -->
+	<!-- ===================================================================================== --> 
+	<!-- 
+	<select id='realtorOfficeNameCnt' parameterType="com.naver.erp.RealtorDTO" resultType="int"> 
+		select count(*) from REALTOR_INFO where ri_officename=#{ri_officename}
+	</select> 
+	-->
+	
+
+
+	
+	
+	
+	<!-- ===== 작은 방 개수 ================================================================================ -->	 
+	
+	
+	<select id='getSmallRoomCnt' parameterType="com.naver.erp.SellroomSearchDTO" resultType="int">
+      select
+              count(*)
+      from REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g
+    
+      where a.r_no=#{r_no}
+		    and a.sr_no = r.sr_no
+		    and r.sr_no = d.sr_no
+		    and g.s_no = r.s_no
+		    and 
+		    <![CDATA[
+			to_number(r.sr_roomsize)<9
+			]]>
+    
+      <include refid = "roomWhere"/>
+	</select>
+
+
+	
+		<!-- ===== 중간 방 개수 ================================================================================ -->	 
+	
+	
+	<select id='getSmallMiddleRoomCnt' parameterType="com.naver.erp.SellroomSearchDTO" resultType="int">
+      select
+              count(*)
+      from REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g
+    
+      where a.r_no=${r_no}
+		    and a.sr_no = r.sr_no
+		    and r.sr_no = d.sr_no
+		    and g.s_no = r.s_no
+		    and 
+		    <![CDATA[
+			to_number(r.sr_roomsize)>8 and to_number(r.sr_roomsize)<14
+			]]>
+    
+      <include refid = "roomWhere"/>
+	</select>
+	
+	
+	<!-- ===== 중간 방 개수 ================================================================================ -->	 
+	
+	
+	<select id='getMiddleRoomCnt' parameterType="com.naver.erp.SellroomSearchDTO" resultType="int">
+      select
+              count(*)
+      from REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g
+    
+      where a.r_no=${r_no}
+		    and a.sr_no = r.sr_no
+		    and r.sr_no = d.sr_no
+		    and g.s_no = r.s_no
+		    and 
+		    <![CDATA[
+			to_number(r.sr_roomsize)>13 and to_number(r.sr_roomsize)<21
+			]]>
+    
+      <include refid = "roomWhere"/>
+	</select>
+	
+	
+
+	
+	
+	
+	<!-- ===== 큰 방 개수 ================================================================================ -->	 
+	
+	
+	<select id='getBigRoomCnt' parameterType="com.naver.erp.SellroomSearchDTO" resultType="int">
+      select
+              count(*)
+      from REALTOR_SELLER_DATA_ASSIGN a, sell_room r, sell_room_addr d, seller_reg g
+    
+      where a.r_no=${r_no}
+		    and a.sr_no = r.sr_no
+		    and r.sr_no = d.sr_no
+		    and g.s_no = r.s_no
+		    and 
+		    <![CDATA[
+			to_number(r.sr_roomsize)>=20
+			]]>
+    
+      <include refid = "roomWhere"/>
+	</select>
+	
+	
+	
+	
+	<!-- ===================================================================================== -->	 
+	<!--  사업자등록번호 입력  -->
+	<!-- ===================================================================================== --> 
+	<select id='getBusinessCnt' parameterType="com.naver.erp.RealtorDTO" resultType="int"> 
+		select count(*) from REALTOR_INFO where ri_business_num=#{ri_business_num}
+	</select>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<!-- ===================================================================================== -->	 
+	<!-- 공인중개사 정보입력   -->
+	<!-- ===================================================================================== --> 
+	<insert id='insertRealtorInfo' parameterType="com.naver.erp.RealtorDTO">
+		insert into REALTOR_REG(
+		r_no,
+		r_id,
+		r_pwd,
+		r_name,
+		r_phone
+		)
+		values(
+			(select nvl(max(r_no),0)+1 from REALTOR_REG)
+			,#{r_id}
+			,#{r_pwd}
+			,#{r_name}
+			,#{r_phone}
+		)
+	</insert>	
+	<!-- ===================================================================================== -->	 
+	<!--  권한 입력  -->
+	<!-- ===================================================================================== --> 
+	<insert id='insertAuthority' parameterType="com.naver.erp.RealtorDTO">
+			insert into realtor_authority(
+		r_no,
+		authority_code
+		)
+		values(
+			(select r_no from REALTOR_REG where r_id=#{r_id})
+			,#{authority_code}
+		)
+	</insert>
+	<!-- ===================================================================================== -->	 
+	<!--  중개소 정보 입력  -->
+	<!-- ===================================================================================== --> 
+	<insert id='insertOffice' parameterType="com.naver.erp.RealtorDTO">
+		insert into REALTOR_INFO(
+		ri_no,
+		r_no,
+		ri_officename,
+		ri_realtor_num,
+		ri_business_num,
+		ri_name,
+		ri_main_phone
+		)
+		values(
+			(select nvl(max(ri_no),0)+1 from REALTOR_INFO)
+			,(select max(r_no) from REALTOR_REG)
+			,#{ri_officename}
+			,#{ri_realtor_num}
+			,#{ri_business_num}
+			,#{ri_name}
+			,#{ri_main_phone}
+		)
+	</insert>
+	<!-- ===================================================================================== -->	 
+	<!--  중개사무소 주소 입력  -->
+	<!-- ===================================================================================== --> 
+	<insert id='insertOfficeAddr' parameterType="com.naver.erp.RealtorDTO">
+		insert into REALTOR_ADDR(
+		ri_no,
+		RI_ADDR,
+		RI_DETAIL_ADDR
+		)
+		values(
+			(select ri_no from REALTOR_INFO where ri_realtor_num=#{ri_realtor_num})
+			,#{ri_addr}
+			,#{ri_detail_addr}
+		)
+	</insert>	
+	<!-- ===================================================================================== -->	 
+	<!--   프로필사진 입력 -->
+	<!-- ===================================================================================== --> 
+ 	<insert id='insertImage' parameterType="com.naver.erp.RealtorDTO">
+		insert into REALTOR_DATA_IMAGE(
+		ri_no,
+		image_name
+		)
+		values(
+			(select ri_no from REALTOR_INFO where ri_realtor_num=#{ri_realtor_num})
+			,#{image_name}
+		)
+	</insert>
+	<!-- ===================================================================================== -->	 
+	<!--  가입경로 입력  -->
+	<!-- ===================================================================================== --> 
+	<insert id='insertRoute' parameterType="com.naver.erp.RealtorDTO">
+		insert into SIGNUP_ROUTE(
+		ri_no,
+		route_code
+		)
+		values(
+			(select ri_no from REALTOR_INFO where ri_realtor_num=#{ri_realtor_num})
+			,#{route_code}
+		)
+	</insert>
+	<!-- ===================================================================================== -->	 
+	<!--  프로필사진 입력  -->
+	<!-- ===================================================================================== --> 
+	<select id='getRealtorImageCnt' parameterType="com.naver.erp.RealtorDTO" resultType="int"> 
+		select count(*) from REALTOR_DATA_IMAGE where image_name=#{image_name}
+	</select>
+	
+	
+	
+	
+	
+	
+	
+	<!-- ===================================================================================== -->	 
+	<!--  소유자 확인  3 -> 4  -->
+	<!-- ===================================================================================== -->
+	<update id="updateCheck" parameterType="com.naver.erp.SellroomSearchDTO">
+		update sell_room_owner_check set check_code = 4
+		where sr_no = #{sr_no}
+	</update>
+	
+	
+	
+	
+	
+	
+	
+	<!-- ===================================================================================== -->	 
+	<!--    -->
+	<!-- ===================================================================================== --> 
+	<!-- <select id='getR_no' parameterType="String" resultType="int">
+		select r_no from realtor_reg where r_id=#{r_id}
+	</select>
+	 -->
+	  <select id='getInfo' parameterType="String" resultType="com.naver.erp.RealtorMenuInfoDTO">
+		select 
+			r.r_no as "r_no",
+			r.r_name as "r_name",
+			(select rimg.image_name as "image_name" from REALTOR_DATA_IMAGE rimg  where rimg.ri_no = (select info.ri_no from realtor_info info where info.r_no = r.r_no )) as "image_name"
+		from realtor_reg r
+		where r.r_id=#{r_id}
+	</select>
+	 
+	
+	
+	<!-- ===================================================================================== -->	 
+	<!--    -->
+	<!-- ===================================================================================== --> 
+	<select id="getRealtorDTO" parameterType="int" resultType="com.naver.erp.RealtorDTO" >
+		select
+			r_id		"r_id"
+			, r_pwd		"r_pwd"
+			, r_name	"r_name"
+			, r_phone	"r_phone"
+	   		, (select authority_code from realtor_authority where r_no=#{r_no})	"authority_code"
+			, (select ri_officename from realtor_info where r_no=#{r_no}) 		"ri_officename"
+			, (select ri_realtor_num from realtor_info where r_no=#{r_no})		"ri_realtor_num"
+			, (select ri_business_num from realtor_info where r_no=#{r_no})		"ri_business_num"
+			, (select ri_name from realtor_info where r_no=#{r_no})				"ri_name"
+			, (select ri_main_phone from realtor_info where r_no=#{r_no})		"ri_main_phone"
+			, (select ri_addr from realtor_addr where ri_no=#{ri_no})			"ri_addr"
+			, (select ri_detail_addr from realtor_addr where ri_no=#{ri_no})	"ri_detail_addr" 
+		
+		from realtor_reg
+		
+		where r_no = #{r_no}
+		
+	</select>
+
+
+
+	<!-- ===================================================================================== -->	 
+	<!--    -->
+	<!-- ===================================================================================== --> 
+	<update id="realtorUpdateRegCnt" parameterType="com.naver.erp.RealtorDTO" >
+		update realtor_reg set
+			r_pwd=#{r_pwd}
+			, r_phone=#{r_phone}
+		where 
+			r_no=#{r_no}	
+	</update>
+	
+	
+	
+		<!-- ===================================================================================== -->
+	<!-- BUYER_REG에서 b_no와 b_pwd가 같을 때의 목록 개수를 가져온다  -->
+	<!-- ===================================================================================== --> 
+	<select id="getPwdCnt" parameterType="com.naver.erp.RealtorDTO" resultType="int">
+		select count(*) from REALTOR_REG where r_no=#{r_no} and r_pwd=#{r_pwd}
+	</select>
+	
+		
+	
+	<!-- ===============1===================================================================== -->
+	<!-- REALTOR_REG에서 r_no가 같을 때의 목록 개수를 가져온다  -->
+	<!-- ===================================================================================== --> 
+	<select id="getRealtorCnt" parameterType="com.naver.erp.RealtorDTO" resultType="int">
+		select count(*) from REALTOR_REG where r_no=#{r_no}
+	</select>
+	
+		
+	<!-- ===============2===================================================================== -->
+	<!-- REALTOR_REG에서 r_no와 r_pwd가 같을 때, 목록을 삭제한다  -->
+	<!-- ===================================================================================== --> 
+	<delete id="deleteRealtor" parameterType="com.naver.erp.RealtorDTO">
+		delete from REALTOR_REG where r_no=#{r_no} and r_pwd=#{r_pwd}
+	</delete>
+	
+	
+	
+	
+	
+	
+	<!-- ===================================================================================== -->	 
+	<!--    -->
+	<!-- ===================================================================================== --> 
+	<update id="realtorUpdateInfoCnt" parameterType="com.naver.erp.RealtorDTO" >
+		update realtor_info set
+			ri_officename=#{ri_officename}
+			, ri_name=#{ri_name}
+			, ri_main_phone=#{ri_main_phone}
+		where 
+			r_no=#{r_no}	
+	</update>
+	
+	
+	
+	<!-- ===================================================================================== -->	 
+	<!--    -->
+	<!-- ===================================================================================== --> 
+	<update id="realtorUpdateAddrCnt" parameterType="com.naver.erp.RealtorDTO">
+		update realtor_addr set
+			ri_addr=#{ri_addr}
+			, ri_detail_addr=#{ri_detail_addr}
+		where 
+			ri_no=#{r_no}	
+	</update>
+	
+	
+	<!-- ===================================================================================== -->	 
+	<!--    -->
+	<!-- ===================================================================================== --> 
+	<update id="realtorUpdateAuthCnt" parameterType="com.naver.erp.RealtorDTO">
+		update realtor_authority set
+			authority_code=#{authority_code}
+		where 
+			r_no=#{r_no}	
+	</update>
+
+
+
+	<!-- ===================================================================================== -->	 
+	<!--    -->
+	<!-- ===================================================================================== --> 
+	<select id="getEmptyRoomAllCnt" parameterType="com.naver.erp.RealtorProductDTO" resultType="int">
+		select count(*) from sell_room_owner_check where check_code = 1
+	</select>
+	
+		   <!-- registered emptyroomList -->
+	<select id="getEmptyRoomList" parameterType="com.naver.erp.RealtorProductDTO" resultType="java.util.HashMap">
+		select * from (
+    		select zzz.*, rownum RNUM
+    		from (
+				select
+            		(select srg.s_no from seller_reg srg where srg.s_no = sr.s_no)  as "s_no"
+            		, (select srg.s_name from seller_reg srg where srg.s_no = sr.s_no)  as "s_name"
+            		, sr.sr_no         as "sr_no"
+            		, sr.sr_roomsize   as "sr_roomsize"
+            		, to_char(sr.sr_date,'YYYY-MM-DD')  as "reg_date"
+            		, (select sra.sr_addr from sell_room_addr sra where sra.sr_no = sr.sr_no)   as "sr_main_addr"
+            		, (select sra.sr_detail_addr from sell_room_addr sra where sra.sr_no = sr.sr_no)    as "sr_addr_detail"
+            		, (select tsr.roomtype_code from type_sell_room tsr where tsr.sr_no = sr.sr_no)     as "roomtype_code"
+            		, (select csrt.roomtype from code_sell_room_type csrt, type_sell_room tsr
+                		where csrt.roomtype_code=tsr.roomtype_code and tsr.sr_no =sr.sr_no)                 as "sr_roomtype"
+            		, (select srst.sell_type_code from sell_room_sell_type srst where srst.sr_no = sr.sr_no)    as "selltype_code"
+            		, (select cst.sell_type from code_sell_type cst, sell_room_sell_type srst
+                		where srst.sell_type_code = cst.sell_type_code and srst.sr_no = sr.sr_no)           as "sr_selltype"
+            		, (select srot.option_type_code  from sell_room_option_type srot where srot.sr_no = sr.sr_no)   as "option_code"
+            		, (select cot.option_type from code_option_type cot, sell_room_option_type srot
+                		where cot.option_type_code = srot.option_type_code and srot.sr_no = sr.sr_no)     as "sr_optiontype"
+            		, (select orp.monthly_rent from one_room_price orp where orp.sr_no = sr.sr_no)      as "monthly_rent"
+            		, (select orp.deposit from one_room_price orp where orp.sr_no = sr.sr_no)      as "deposit"
+            		, (select jp.price_jeonse from jeonse_price jp where jp.sr_no = sr.sr_no)      as "price_jeonse"
+            		, (select sp.price_sale from sale_price sp where sp.sr_no = sr.sr_no)          as "price_sale"
+            		, sroc.check_code                                           as "check_owner_code"
+            		, (select csroc.check_type from code_sell_room_owner_check csroc
+                		where sroc.check_code=csroc.check_code and sroc.sr_no = sr.sr_no)      as "check_owner"
+                	, (select max(image_name) from sellroom_image si,sell_room sr2 where sr2.sr_no=si.sr_no and sr2.sr_no=sr.sr_no) as "sellroom_image"
+        		from sell_room sr, sell_room_owner_check sroc
+        	where sroc.sr_no = sr.sr_no and sroc.check_code &lt; 2
+        	order by sr.sr_no desc
+        	) zzz)
+		where
+			<![CDATA[
+				RNUM>=${selectPageNo*rowCntPerPage-rowCntPerPage+1}
+				and RNUM<=${selectPageNo*rowCntPerPage}
+			]]>
+	</select>
+	<!-- for productContent get data -->
+	<select id="getrealtorProductDTO" parameterType="int" resultType="com.naver.erp.RealtorProductDTO">
+		select
+				srg.s_name         																			as "s_name"
+				, srg.s_pwd         																		as "s_pwd"
+				, sr.sr_no             																		as "sr_no"
+				, tsr.roomtype_code   																		as "roomtype_code"
+		    	,(select a.roomtype from code_sell_room_type a
+		    		where a.roomtype_code=tsr.roomtype_code  and tsr.sr_no =sr.sr_no) 						as"sr_roomtype"
+		    	, srst.sell_type_code   																	as "selltype_code"
+		    	, (select cst.sell_type from code_sell_type cst
+		    		where srst.sell_type_code = cst.sell_type_code and srst.sr_no = sr.sr_no) 				as "sr_selltype"
+				, sra.sr_addr           																	as "sr_main_addr"
+		    	, sra.sr_detail_addr           																as "sr_addr_detail"
+		    	, srot.option_type_code  																	as "option_code"
+		    	, (select cot.option_type from code_option_type cot
+		    		where cot.option_type_code = srot.option_type_code and srot.sr_no = sr.sr_no)  			as "sr_optiontype"
+		    	, orp.monthly_rent   																		as "monthly_rent"
+		    	, orp.deposit            																	as "deposit"
+		    	, jp.price_jeonse                  															as "price_jeonse"
+		    	, sp.price_sale                  															as "price_sale"
+		    	, (select csroc.check_type from code_sell_room_owner_check csroc, sell_room_owner_check sroc
+		    		where sroc.check_code=csroc.check_code and sroc.sr_no = sr.sr_no)   					as "check_owner"
+		    	, (select sroc.check_code from code_sell_room_owner_check csroc, sell_room_owner_check sroc
+		    		where sroc.check_code=csroc.check_code and sroc.sr_no = sr.sr_no)   					as "check_owner_code"
+		from	seller_reg srg , sell_room sr,
+				type_sell_room tsr, sell_room_addr sra, sell_room_sell_type srst, sell_room_option_type srot,
+				one_room_price orp, jeonse_price jp, sale_price sp
+		where	sr.sr_no = #{sr_no} and
+				srg.s_no = sr.s_no and
+		        sr.sr_no = tsr.sr_no  and
+		        sra.sr_no = sr.sr_no and
+		        srst.sr_no = sr.sr_no and
+		        srot.sr_no = sr.sr_no and
+		        orp.sr_no(+) = sr.sr_no  and
+		        jp.sr_no(+) = sr.sr_no and
+		        sp.sr_no(+) = sr.sr_no
+	</select>
+	<!-- 공인중개사 매칭 대기중 => 소유자 확인 중 -->
+	<update id="updateCheckRegisterCode" parameterType="com.naver.erp.RealtorProductDTO">
+		update sell_room_owner_check
+		set check_code = 2
+		where sr_no = #{sr_no}
+	</update>
+	<!-- 소유자 확인 중 => 공실 광고중 -->
+	<update id="updateCheckOwnerCode" parameterType="com.naver.erp.RealtorProductDTO">
+		update sell_room_owner_check
+		set check_code = 3
+		where sr_no = #{sr_no}
+	</update>
+	
+	
+	<!-- check_code=3 => insert into realtor_seller_data_assign -->
+			
+	<insert id='insertDataAssign' parameterType="com.naver.erp.RealtorProductDTO">
+		insert into realtor_seller_data_assign(
+		r_no
+		,sr_no
+		,as_date
+		)
+		values(
+		#{r_no}
+		, #{sr_no}
+		, sysdate
+		)
+	</insert>
+
+
+	
+	<!-- <select id="getRealtorSaleRoomAllCnt" parameterType="com.naver.erp.RealtorSearchDTO" resultType="int">
+		select count(*)
+		from realtor_reg rtrg, realtor_seller_data_assign rsda, SELL_ROOM_OWNER_CHECK sroc
+		where 
+		        rtrg.r_no = #{r_no} and
+		        rsda.sr_no = sroc.sr_no and 
+		        sroc.check_code = 3 
+	</select> -->
+
+	<select id="getRealtorSalRoomList"  resultType="java.util.HashMap">
+		select * from (
+            select rownum RNUM, zzz.*  from (
+                select
+                    sr.sr_no                                                                                              as "sr_no"
+                    , sra.sr_addr                                                                                         as "sr_addr"
+                    , nvl(sra.sr_detail_addr,' ')                                                                         as "sr_detail_addr"
+                    , (select tsr.roomtype_code from type_sell_room tsr where tsr.sr_no = sr.sr_no)                       as "roomtype_code"
+                    , (select csrt.roomtype from code_sell_room_type csrt            
+                        where csrt.roomtype_code=tsr.roomtype_code  and tsr.sr_no =sr.sr_no)                              as "roomtype"
+                    , (select srst.sell_type_code from sell_room_sell_type srst where srst.sr_no = sr.sr_no)              as "sell_type_code"
+                    , (select cst.sell_type from code_sell_type cst, sell_room_sell_type srst
+                        where srst.sell_type_code = cst.sell_type_code and srst.sr_no = sr.sr_no)                         as "sell_type"
+                    , nvl(orp.monthly_rent,' ')                                                                           as "monthly_rent"
+                    , nvl(orp.deposit, ' ')                                                                               as "deposit"
+                    , nvl(jp.price_jeonse, ' ')                                                                           as "price_jeonse"
+                    , nvl(sp.price_sale, ' ')                                                                             as "price_sale"
+                    , sroc.check_code														                                as "check_code"
+                    , csroc.check_type                                                                                                  as "check_type"  
+                    , to_char(sr.sr_date,'YYYY-MM-DD')                                                                    as "sr_date"              
+                from    seller_reg srg, sell_room sr,
+                        type_sell_room tsr, sell_room_addr sra,
+                        one_room_price orp, jeonse_price jp, sale_price sp, code_sell_room_owner_check csroc, sell_room_owner_check sroc
+                where
+                        srg.s_no = sr.s_no and
+                        sr.sr_no = tsr.sr_no and
+                        sra.sr_no = sr.sr_no and
+                        orp.sr_no(+) = sr.sr_no and
+                        jp.sr_no(+) = sr.sr_no and
+                        sp.sr_no(+) = sr.sr_no and
+                        sroc.check_code=csroc.check_code and 
+                        sroc.sr_no = sr.sr_no and 
+                        sroc.check_code=1
+                order by sr_date desc
+              ) zzz 
+              
+         ) where RNUM &lt;6 
+	</select>
+	
+	<select id="getRateOfSalesList" parameterType="int" resultType="java.util.HashMap" >
+		select
+		        SUM( DECODE(extract(month from sr.SR_DATE), '1', 1, 0) ) AS "Jan"
+		        , SUM(DECODE(extract(month from sr.SR_DATE), '2', 1, 0) ) AS "Feb"
+		        , SUM(DECODE(extract(month from sr.SR_DATE), '3', 1, 0) ) AS "Mar"
+		        , SUM(DECODE(extract(month from sr.SR_DATE), '4', 1, 0) ) AS "Apr"
+		        , SUM(DECODE(extract(month from sr.SR_DATE), '5', 1, 0) ) AS "May"
+		        , SUM(DECODE(extract(month from sr.SR_DATE), '6', 1, 0) ) AS "Jun"                                   
+		        , SUM(DECODE(extract(month from sr.SR_DATE), '7', 1, 0) ) AS "Jul"
+		        , SUM(DECODE(extract(month from sr.SR_DATE), '8', 1, 0) ) AS "Aug"
+		        , SUM(DECODE(extract(month from sr.SR_DATE), '9', 1, 0) ) AS "Sep"
+		        , SUM(DECODE(extract(month from sr.SR_DATE), '10', 1, 0) ) AS "Oct"
+		        , SUM(DECODE(extract(month from sr.SR_DATE), '11', 1, 0) ) AS "Nov"
+		        , SUM(DECODE(extract(month from sr.SR_DATE), '12', 1, 0) ) AS "Dec"
+		        , MIN(extract(year from SR_DATE) )  as "SR_DATE"
+		FROM 
+		        sell_room sr, sell_room_owner_check sroc, realtor_seller_data_assign rsda, realtor_reg rtrg
+		WHERE  
+		        rtrg.r_no = #{r_no} and 
+		        rsda.r_no  = #{r_no} and
+		        sr.sr_no = sroc.sr_no and
+		        sr.sr_no = rsda.sr_no and
+		        sroc.check_code=5
+	</select>
+	
+	<select id="getSalesByRegionList" parameterType="int" resultType="java.util.HashMap" >
+		 select 
+            regexp_substr(srad.sr_addr,'[^ ]+',1,3)            "sr_addr"
+            , count(*)                                         "sale_mount"        
+		from
+            sell_room sr, sell_room_addr srad, sell_room_owner_check sroc, realtor_reg rtrg, realtor_info rtif ,realtor_addr rtad
+		where 
+             rtrg.r_no=#{r_no} and rtrg.r_no=rtif.r_no and rtif.ri_no=rtad.ri_no and 
+             regexp_substr(srad.sr_addr,'[^ ]+',1,2)=regexp_substr(rtad.ri_addr,'[^ ]+',1,2) and 
+             sr.sr_no=sroc.sr_no and  srad.sr_no = sr.sr_no and
+             sroc.check_code=5  
+		group by 
+             regexp_substr(srad.sr_addr,'[^ ]+',1,3)
+        order by
+               regexp_substr(srad.sr_addr,'[^ ]+',1,3)
+	</select>
+	<!-- <select id="getRateOfSalesList" resultType="java.util.HashMap" >
+		select
+            nvl(SUM("01"),0) as "Jan", nvl(SUM("02"),0) "Feb" , nvl(SUM("03"),0) "Mar" , nvl(SUM("04"),0) AS "Apr", nvl(SUM("05"),0) AS "May", nvl(SUM("06"),0) AS "Jun",
+            nvl(SUM("07"),0) AS "Jul", nvl(SUM("08"),0) AS "Aug", nvl(SUM("09"),0) AS "Sep", nvl(SUM("10"),0) AS "Oct", nvl(SUM("11"),0) AS "Nov", nvl(SUM("12"),0) AS "Dec"
+        from sell_room_date_view 
+	</select> -->
+	
+	<select id="getAuthority" parameterType="int" resultType="String" >
+		select 
+		    (select cra.authority from code_realtor_authority cra where rta.authority_code=cra.authority_code )    "authority"
+		from 
+			realtor_authority rta 
+		where 
+			rta.r_no=#{r_no}	
+	</select>
+	
+	<!-- 중복확인 부분 -->
+	<!-- ===================================================================================== -->	 
+	<!--   중개등록번호 중복확인부분  -->
+	<!-- ===================================================================================== --> 
+	<select id="getRealtorNumCnt" parameterType="com.naver.erp.RealtorDTO" resultType="int"> 
+		select count(*) from realtor_info where ri_realtor_num=#{ri_realtor_num}
+	</select>
+	<select id="getBusinessNumCnt" parameterType="com.naver.erp.RealtorDTO" resultType="int"> 
+		select count(*) from realtor_info where ri_business_num=#{ri_business_num}
+	</select>
+
+
+	<!-- ===================================================================================== -->
+	<!-- realtor_REG에서 정보에 해당하는 아이디 확인  -->
+	<!-- ===================================================================================== -->
+	<select id="realtorIdCnt" parameterType="com.naver.erp.RealtorDTO" resultType="String">
+		select 
+			r_id 
+		from 
+			realtor_reg
+		where
+			r_name=#{r_name} and r_phone=#{r_phone}
+	</select>
+	<!-- ===================================================================================== -->
+	<!-- realtor_REG 에서 정보에 해당하는 비번 확인  -->
+	<!-- ===================================================================================== --> 
+	<select id="realtorPwdGet" parameterType="com.naver.erp.RealtorDTO" resultType="String">
+		select 
+			r_pwd 
+		from 
+			realtor_reg
+		where
+			r_id=#{r_id} and r_name=#{r_name} and r_phone=#{r_phone}
+	</select> 
+	
+	
+	
+	<!-- ============================================================================================================================================= -->
+	<!-- 소유자 확인 중 => 공실 광고중 -->
+	<update id="updateCheck_codeOf2" parameterType="com.naver.erp.RealtorProductDTO" >
+		update sell_room_owner_check
+		set check_code = 3
+		where sr_no = #{sr_no}
+	</update>
+	<!-- 소유자 확인 중 => 공실 광고중 -->
+	<!-- <update id="updateCheckOwnerCode" parameterType="com.naver.erp.RealtorProductDTO">
+		update sell_room_owner_check
+		set check_code = 3
+		where sr_no = #{sr_no}
+	</update> -->
+	
+	
+	
+	
+	
+</mapper>
+	
+
+
+
+
+
+
+
+
