@@ -4,7 +4,12 @@
 - 1인가구를 타겟으로, 부동산서비스에 현재 사회 트렌드로 자리 잡고 있는 렌탈서비스를 추가함으로써 소비자의 니즈를 충족시킬 수 있도록 구현한 서비스 플랫폼  
 (구해방, 팔아방, 렌탈서비스, 공인중개사 서비스, 관리자 서비스 총 5개의 카테고리)
 
+## 초기화면
+![InitialPage](https://user-images.githubusercontent.com/12196202/74936066-d100b480-542c-11ea-9147-5c7f8fa64021.JPG)
+
 ----
+## 역할 및 기능
+
 ### 1. 팀원 및 역할
 - 김보성(팀장) : DB설계, MASTER PAGE 설계 및 구현, 프로젝트 총괄  
 github url : https://github.com/imkimbosung    
